@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -29,13 +29,16 @@ from appdirs import AppDirs
 # ------------
 # Custom Modules
 
+from .database import get_database
+from .command_fuel import fuel
 
 # -------------
 
 __appname__ = "fuel_tracker"
 __company__ = "bluebill.net"
 
-def config():
+
+def construct_config():
     """
     Retrieve the user configuration.
 
@@ -46,22 +49,37 @@ def config():
     config = {}
 
     # The location of the settings file
-    config['folder'] = Path(dirs.user_config_dir).joinpath(__company__).joinpath(__appname__)
-    config['folder'].mkdir(parents=True, exist_ok=True)
-    config["settings_path"] = location.joinpath("settings.toml")
+    config["user_config"] = (
+        Path(dirs.user_config_dir).joinpath(__company__).joinpath(__appname__)
+    )
+    config["user_config"].mkdir(parents=True, exist_ok=True)
+
+    settings_file = config["user_config"] / Path("settings.toml")
 
     # Default settings
     config["settings"] = {
-        'database':'fuel.db',
-        'date_format':"%Y-%m-%d",  # How dates are reported and interpreted. Based on strptime behavior: https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-        'fuel_unit':'l',           # The unit (l or us_gal) we'll assume the fuel quantity is entered in and the value we'll report on. It will be stored as liters in the database.
-        'mileage_unit':'km',       # The unit (km or mi) we'll assume for mileage data. It will be stored as kilometers in the database.
+        "database": "fuel.db",  # name of the database to use
+        "date_format": "%Y-%m-%d",  # How dates are reported and interpreted. Based on strptime behavior: https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        "fuel_unit": "l",  # The unit (l or us_gal) we'll assume the fuel quantity is entered in and the value we'll report on. It will be stored as liters in the database.
+        "mileage_unit": "km",  # The unit (km or mi) we'll assume for mileage data. It will be stored as kilometers in the database.
     }
 
-    if settings.exists():
-        config["settings"] |= toml.loads(config["settings_path"].read_text())
+    if settings_file.exists():
+        config["settings"] |= toml.loads(settings_file.read_text())
+
+    # Construct the path to the database
+    # 1. Does it exist
+
+    db_path = Path(config["settings"]["database"])
+
+    if db_path.is_absolute():
+        config["path_db"] = db_path
+
+    else:
+        config["path_db"] = config["user_config"] / db_path
 
     return config
+
 
 @click.group()
 @click.version_option()
@@ -83,9 +101,15 @@ def main(*args, **kwargs):
     ctx = args[0]
     ctx.ensure_object(dict)
 
-    ctx.obj["config"] = config()
+    config = construct_config()
+
+    # get a connection to the database
+    config["db"] = get_database(config["path_db"])
+
+    click.echo(config['db'])
+
+    ctx.obj["config"] = config
 
 
-
-# main.add_command(image)
+main.add_command(fuel)
 # main.add_command(animation)
