@@ -35,15 +35,14 @@ def fuel(*args, **kwargs):
 
     """
 
-    # Initialize the shared context object to a dictionary and configure
-    # it for the app
     ctx = args[0]
 
-    # planned = ctx.obj["planned"]
-    # plan_stope = ctx.obj["plan_stope"]
-    # survey_stope = ctx.obj["survey_stope"]
-    # common_rings = ctx.obj["common_rings"]
-    # bbox = ctx.obj["bbox"]
+    config = ctx.obj["config"]
 
-    click.secho('ft fuel....', fg='blue')
+
     pass
+
+
+# how to format datetime - can accept multiple value strings in try them in a particular order
+# click.DateTime(formats=[`%Y-%m-%d`, `%d/%m/%y`, `%m/%d/%y`, `%d/%m/%Y`])
+# https://click.palletsprojects.com/en/8.0.x/api/#click.DateTime

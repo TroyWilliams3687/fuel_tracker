@@ -14,15 +14,21 @@ The information will be stored in an SQLite database located in `~/.config/blueb
 
 ## TODO
 
-- `ft fuel add --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --car=passat --partial --comment="Some reason"`
+- `ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --partial --comment="Some reason"`
 
-    - This will add a new fuel record to the database
+    - This will add a new fuel record to the database for the specified name of the vehicle (can also specify the vehicle_id).
+
+    - `vehicle`
+        - The vehicle must already exist in the database
+        - The vehicle must be added prior to adding a fill up
+        - The vehicle can be specified by a unique name or its row id in the database        
+
     - `--date` - The date in YYYY-mm-dd format, but should be setting in the configuration file as a format string for ` datetime.strptime()`
         - `%Y-%m-%d` - 2021-08-21 - `dt = datetime.strptime("2021-08-21", "%Y-%m-%d")`
         - `%d/%m/%y` - 21/11/06   - `dt = datetime.strptime("21/11/06", "%d/%m/%y")`
         - `%m/%d/%y` - 11/21/06
         - `%d/%m/%Y` - 21/11/2006
-        - All dates will be stored as ISO-8600 formatted dates (yyyy-mm-dd)
+        - All dates will be stored in the database as ISO-8600 formatted dates (yyyy-mm-dd)
         - Default - `%Y-%m-%d`
 
     - `--fuel` 
@@ -38,12 +44,6 @@ The information will be stored in an SQLite database located in `~/.config/blueb
         - assumed units of dollars.
         - In reality, we will store a number. We won't tag a currency unit to it. It will be up to the user to do the conversion to ensure a common currency is stored in the database
 
-    - `--car`
-        - The car must already exist in the database
-        - The car must be added prior to adding a fill up
-        - The car can be specified by a unique name or its id number
-        - It should be possible to add a default car to the settings so they do not have to specify it every time
-
     - `--partial`
         - a simple flag that indicates that the fuel record will be for a partial fill.
         - this may be used in some calculations particularly fuel economy
@@ -51,7 +51,7 @@ The information will be stored in an SQLite database located in `~/.config/blueb
     - `--comment`
         - Some sort of text description about the fuel record. Usually a reason for the `--partial`.
 
-    - if the user simply issues `ft add`, they will be prompted for the information
+    - if the user simply issues `ft add passat`, they will be prompted for the information using the click prompt system:
 
     ```bash
     $ ft add
@@ -66,13 +66,16 @@ The information will be stored in an SQLite database located in `~/.config/blueb
         - The should simply have to enter them again - don't bother prompting for incorrect information
     - If the values are correct and valid (as best as the software can tell) it will display the values again with the record number in the database
 
-- `ft fuel add --csv=file.csv`
-- `ft fuel add --odf=data.ods`
-- `ft fuel add --excel=data.xlsx`
+>NOTE: If the `--vehicle` switch and any of the following are present on the CLI: `--date`, `--fuel`, `--mileage`, `--cost` fuel tracker will assume we are trying to enter an individual fuel entry.
+
+
+- `ft fuel add passat --csv=file.csv`
+- `ft fuel add passat --odf=data.ods`
+- `ft fuel add passat --excel=data.xlsx`
     - It should be possible to add fuel records from a csv, ods or excel file, if the columns have the same names as the switches (the order doesn't matter)
-    - The will need to have a column called `identifier` so we know what car it is for
     - We should provide a detailed exception report if there are problems with the data so it is easy to fix
     - need to have duplicate record checking for this
+    - maybe this would be better as `ft fuel add passat bulk file.csv|data.ods|data.xlsx` <- not sure about this...
 
 
 - `ft fuel remove 45 --dry-run`
@@ -101,17 +104,17 @@ The information will be stored in an SQLite database located in `~/.config/blueb
         - size
         - etc.
 
-- `ft car add passat --make=Volkswagen --model=passat --year=2015 --tank=70 --inital-odo=15`
+- `ft vehicle add passat --make=Volkswagen --model=passat --year=2015 --tank=70 --inital-odo=15`
     - adds a new car to the database with the identifier `passat`. The identifier can be used in other commands to easily select the car to work on. You will also be able to use the car record id.
 
-- `ft car remove passat --dry-run`
+- `ft vehicle remove passat --dry-run`
     - remove the car from the database and all
     - if the `--dry-run` switch is used, it will print the car it would remove along with the fuel records associated with it.
     - can specify the car by the identifier or the car record number
 
-- `ft car edit passat --tank=71`
+- `ft vehicle edit passat --tank=71`
     - edit a column of a car record
-    - the switches match the `car add` command
+    - the switches match the `ft vehicle add` command
     - can specify the car by the identifier or the car record number
 
 - `ft report passat soul matrix --date=-5 --excel --summary --yearly --monthly`

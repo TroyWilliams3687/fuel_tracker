@@ -31,6 +31,7 @@ from appdirs import AppDirs
 
 from .models import get_session
 from .command_fuel import fuel
+from .command_vehicle import vehicle
 
 # -------------
 
@@ -103,13 +104,11 @@ def main(*args, **kwargs):
 
     config = construct_config()
 
-    # get a connection to the database
+    # get a connection to the database (create it if it doesn't exit)
     config["db"] = get_session(config["path_db"])
-
-    click.echo(config['db'])
 
     ctx.obj["config"] = config
 
 
 main.add_command(fuel)
-# main.add_command(animation)
+main.add_command(vehicle)

@@ -68,12 +68,37 @@ Base = declarative_base()
 class Vehicle(Base):
     __tablename__ = 'VEHICLE'
     vehicle_id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String, unique=True)
     make = Column(String)
     model = Column(String)
     year = Column(Integer, default=0)
     tank_capacity = Column(Float, default=0.0)
     initial_odometer = Column(Float, default=0.0)
+
+    def __str__(self):
+
+        msg = (
+            f"{self.name} ({self.vehicle_id})",
+            f"Make:  {self.make}",
+            f"Model: {self.model}",
+            f"Year:  {self.year}",
+            f"Tank Capacity: {self.tank_capacity}",
+            f"Odometer:      {self.initial_odometer}",
+        )
+
+        return '\n'.join(msg)
+
+    def __repr__(self):
+
+        return (
+            f"Vehicle(id={self.vehicle_id}, "
+            f"name={self.name}, "
+            f"make={self.make}, "
+            f"model={self.model}, "
+            f"year={self.year}, "
+            f"tank_capacity={self.tank_capacity}, "
+            f"initial_odometer={self.initial_odometer}"
+        )
 
 class FuelRecord(Base):
     __tablename__ = 'FUEL'
@@ -100,20 +125,33 @@ def get_session(path):
     # https://docs.sqlalchemy.org/en/14/tutorial/engine.html
     engine = create_engine(
         f"sqlite+pysqlite:///{path}",
-        echo=True,
-        future=True,
+        echo=False,
+        future=True, # enable 2.0 future (Core)
     )
 
     # make sure all the Tables defined by the Base classes are created
+    # https://docs.sqlalchemy.org/en/14/core/metadata.html#creating-and-dropping-database-tables
     Base.metadata.create_all(engine)
 
-    return sessionmaker(engine)
+    return sessionmaker(
+        engine,
+        future=True,
+    )
+
+# def add_vehicle(session, vehicles)
+#     """
+
+#     # Parameters (kwargs)
+
+#     vehicles:list(Vehicle)
+
+#     """
+
+#     with session.begin():
+#         for v in vehicles:
+#             session.add(v)
 
 
-# from sqlalchemy import select
-# result = session.execute(
-#     select(User).where(User.id == 5)
-# )
 
 # Session Context, adding items to the database - automatically commits when over
 # with Session.begin() as session:
