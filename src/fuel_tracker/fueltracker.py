@@ -29,7 +29,7 @@ from appdirs import AppDirs
 # ------------
 # Custom Modules
 
-from .database import get_database
+from .models import get_session
 from .command_fuel import fuel
 
 # -------------
@@ -104,7 +104,7 @@ def main(*args, **kwargs):
     config = construct_config()
 
     # get a connection to the database
-    config["db"] = get_database(config["path_db"])
+    config["db"] = get_session(config["path_db"])
 
     click.echo(config['db'])
 

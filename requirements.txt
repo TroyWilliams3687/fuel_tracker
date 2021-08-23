@@ -62,7 +62,7 @@ appdirs
 pandas
 odfpy
 openpyxl
-
+sqlalchemy
 
 # ------------
 # Custom Repo

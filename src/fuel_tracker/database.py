@@ -12,7 +12,9 @@
 # -----------
 
 """
-
+This is an attempt to make a Database model using basic sql, dataclasses
+and sqlite. It would work ok, but the management aspect could become
+very large for big projects
 """
 
 # ------------
