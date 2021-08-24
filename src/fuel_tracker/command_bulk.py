@@ -56,6 +56,7 @@ def bulk(*args, **kwargs):
 @click.pass_context
 @click.argument(
     "spreadsheet",
+    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
     type=click.Path(
         exists=True,
         dir_okay=False,
@@ -90,46 +91,46 @@ def add(*args, **kwargs):
 
     \b
     $ ft bulk add ./data/vw-passat-2015.ods
+    $ ft bulk add ./data/*.ods
 
     """
 
     ctx = args[0]
     config = ctx.obj["config"]
 
-    df = pd.read_excel(kwargs['spreadsheet'],  parse_dates=['fill_date'])
+    for spreadsheet in kwargs['spreadsheet']:
+        click.echo(f'Processing {spreadsheet}...')
 
-    df = df.astype({'partial':bool})
+        df = pd.read_excel(spreadsheet,  parse_dates=['fill_date'])
+        df = df.astype({'partial':bool})
 
-    vehicles = {}
-    vehicle_columns = [
-        'name',
-        'make',
-        'model',
-        'year',
-        'tank_capacity',
-        'initial_odometer',
-    ]
-
-    for vehicle_values, group in df.groupby(vehicle_columns):
-        new_vehicle = Vehicle(**{k:v for k, v in zip(vehicle_columns, vehicle_values)})
-
-        # remove the vehicle columns from the dataframe
-        fr = group.drop(vehicle_columns, axis=1)
-
-        new_vehicle.fuel_records = [
-            FuelRecord(**fuel_record)
-            for fuel_record in fr.to_dict('records')
+        vehicles = {}
+        vehicle_columns = [
+            'name',
+            'make',
+            'model',
+            'year',
+            'tank_capacity',
+            'initial_odometer',
         ]
 
-        with config['db'].begin() as session:
-            session.add(new_vehicle)
-            session.flush() # get the new id
+        for vehicle_values, group in df.groupby(vehicle_columns):
+            new_vehicle = Vehicle(**{k:v for k, v in zip(vehicle_columns, vehicle_values)})
 
-            click.echo()
-            click.echo('Added Bulk Records for:')
-            click.echo()
-            click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
-            click.echo(f'Fuel Records: {len(new_vehicle.fuel_records)}')
-            click.echo()
+            # remove the vehicle columns from the dataframe
+            fr = group.drop(vehicle_columns, axis=1)
+
+            new_vehicle.fuel_records = [
+                FuelRecord(**fuel_record)
+                for fuel_record in fr.to_dict('records')
+            ]
+
+            with config['db'].begin() as session:
+                session.add(new_vehicle)
+                session.flush() # get the new id
+
+                click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
+                click.echo(f'Fuel Records: {len(new_vehicle.fuel_records)}')
+                click.echo()
 
 
