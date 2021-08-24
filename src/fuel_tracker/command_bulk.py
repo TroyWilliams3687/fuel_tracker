@@ -27,6 +27,9 @@ from datetime import date
 import click
 import pandas as pd
 
+# from sqlalchemy import select, update, delete, values
+from sqlalchemy import select, delete
+
 # ------------
 # Custom Modules
 
@@ -40,15 +43,12 @@ from .models import FuelRecord
 @click.pass_context
 def bulk(*args, **kwargs):
     """
-    Perform bulk operations on the database.
+    Perform bulk operations on the database such as adding new vehicles
+    and records or deleting existing vehicles and records.
 
     # Usage
 
     $ ft bulk add ./data/vw-passat-2015.ods
-
-
-
-
     """
     pass
 
@@ -135,3 +135,62 @@ def add(*args, **kwargs):
                 click.echo()
 
 
+@bulk.command('delete')
+@click.pass_context
+@click.argument(
+    "vehicles",
+    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    type=str,
+)
+def delete(*args, **kwargs):
+    """
+    Delete the vehicle (by name or id) from the database along with all
+    of its fuel records.
+
+    # Usage
+
+    \b
+    $ ft bulk delete passat 2
+
+    """
+
+    ctx = args[0]
+    config = ctx.obj["config"]
+
+    with config['db'].begin() as session:
+
+        for vid in kwargs['vehicles']:
+            click.echo(f'Deleting {vid}...')
+
+            # do we have an integer or a string?
+            try:
+
+                # If vid is an integer, delete by integer
+                int_id = int(vid)
+                statement = select(Vehicle).where(Vehicle.vehicle_id == int_id)
+
+            except ValueError:
+
+                # we have a string, retrieve it by
+                statement = select(Vehicle).where(Vehicle.name == vid)
+
+            # NOTE: select(Vehicle) returns the SQL
+
+            selected_vehicle = session.execute(statement).first()
+
+            # NOTE: session.execute returns an iterable.
+
+            if len(selected_vehicle) == 1:
+                session.delete(selected_vehicle[0])
+
+            elif len(selected_vehicle) == 0:
+                click.secho(f'No matches for: {vid}', fg='cyan')
+
+            else:
+                click.secho(f'More than one vehicle returned ({len(selected_vehicle)})! Doing Nothing!', fg='red')
+
+                click.secho('Here are the returned Vehicles:', fg='red')
+
+                for v in selected_vehicle:
+                    click.secho(v, fg='red')
+                    click.echo()

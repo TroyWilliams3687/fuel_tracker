@@ -74,7 +74,14 @@ class Vehicle(Base):
     year = Column(Integer, default=0)
     tank_capacity = Column(Float, default=0.0)
     initial_odometer = Column(Float, default=0.0)
-    fuel_records = relationship("FuelRecord", order_by="FuelRecord.fill_date")
+    fuel_records = relationship(
+        "FuelRecord",
+        order_by="FuelRecord.fill_date",
+        cascade="all,delete-orphan",
+        backref="Vehicle",
+        # passive_deletes=True,
+    )
+
 
     def __str__(self):
 
