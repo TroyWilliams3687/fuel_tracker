@@ -91,6 +91,7 @@ def add(*args, **kwargs):
 
     \b
     $ ft bulk add ./data/vw-passat-2015.ods
+    $ ft bulk add ./data/vw-passat-2015.ods ./data/dodge-intrepid-1997.ods
     $ ft bulk add ./data/*.ods
 
     """
