@@ -44,6 +44,10 @@ def bulk(*args, **kwargs):
 
     # Usage
 
+    $ ft bulk add ./data/vw-passat-2015.ods
+
+
+
 
     """
     pass
@@ -85,7 +89,7 @@ def add(*args, **kwargs):
     # Usage
 
     \b
-    $ ft bulk add
+    $ ft bulk add ./data/vw-passat-2015.ods
 
     """
 
@@ -105,27 +109,27 @@ def add(*args, **kwargs):
         'tank_capacity',
         'initial_odometer',
     ]
+
     for vehicle_values, group in df.groupby(vehicle_columns):
         new_vehicle = Vehicle(**{k:v for k, v in zip(vehicle_columns, vehicle_values)})
 
+        # remove the vehicle columns from the dataframe
         fr = group.drop(vehicle_columns, axis=1)
-
-        click.echo(fr.head())
 
         new_vehicle.fuel_records = [
             FuelRecord(**fuel_record)
             for fuel_record in fr.to_dict('records')
         ]
 
-    with config['db'].begin() as session:
-        session.add(new_vehicle)
+        with config['db'].begin() as session:
+            session.add(new_vehicle)
+            session.flush() # get the new id
 
-        session.flush() # get the new id
+            click.echo()
+            click.echo('Added Bulk Records for:')
+            click.echo()
+            click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
+            click.echo(f'Fuel Records: {len(new_vehicle.fuel_records)}')
+            click.echo()
 
-        click.echo()
-        click.echo('Added Bulk Records for:')
-        click.echo()
-        click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
-        click.echo(f'Fuel Records: {len(new_vehicle.fuel_records)}')
-        click.echo()
 
