@@ -29,7 +29,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, CheckConstraint
 from sqlalchemy import Integer, Float, String, Boolean, Date
 # from sqlalchemy import Table
-# from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -74,6 +74,7 @@ class Vehicle(Base):
     year = Column(Integer, default=0)
     tank_capacity = Column(Float, default=0.0)
     initial_odometer = Column(Float, default=0.0)
+    fuel_records = relationship("FUEL", order_by="FUEL.file_date")
 
     def __str__(self):
 
@@ -114,7 +115,7 @@ class FuelRecord(Base):
     cost = Column(Float, default=0.0)
     partial = Column(Boolean)
     comment = Column(String)
-    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id"))
+    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete="CASCADE"))
 
 
 def get_session(path):
