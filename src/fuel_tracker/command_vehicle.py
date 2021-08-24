@@ -35,6 +35,7 @@ from .models import Vehicle
 @click.pass_context
 def vehicle(*args, **kwargs):
     """
+    Work with vehicles.
 
     # Usage
 
@@ -85,8 +86,7 @@ def vehicle(*args, **kwargs):
 )
 def add(*args, **kwargs):
     """
-
-    Add fuel records to the named vehicle
+    Add new Vehicles to the database.
 
     # Usage
 

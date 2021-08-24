@@ -74,15 +74,15 @@ class Vehicle(Base):
     year = Column(Integer, default=0)
     tank_capacity = Column(Float, default=0.0)
     initial_odometer = Column(Float, default=0.0)
-    fuel_records = relationship("FUEL", order_by="FUEL.file_date")
+    fuel_records = relationship("FuelRecord", order_by="FuelRecord.fill_date")
 
     def __str__(self):
 
         msg = (
-            f"{self.name} ({self.vehicle_id})",
-            f"Make:  {self.make}",
-            f"Model: {self.model}",
-            f"Year:  {self.year}",
+            f"Name (id):     {self.name} ({self.vehicle_id})",
+            f"Make:          {self.make}",
+            f"Model:         {self.model}",
+            f"Year:          {self.year}",
             f"Tank Capacity: {self.tank_capacity}",
             f"Odometer:      {self.initial_odometer}",
         )
@@ -134,10 +134,8 @@ def get_session(path):
     # https://docs.sqlalchemy.org/en/14/core/metadata.html#creating-and-dropping-database-tables
     Base.metadata.create_all(engine)
 
-    return sessionmaker(
-        engine,
-        future=True,
-    )
+    return sessionmaker(engine,future=True)
+
 
 # def add_vehicle(session, vehicles)
 #     """

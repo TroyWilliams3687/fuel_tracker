@@ -32,6 +32,7 @@ from appdirs import AppDirs
 from .models import get_session
 from .command_fuel import fuel
 from .command_vehicle import vehicle
+from .command_bulk import bulk
 
 # -------------
 
@@ -112,3 +113,4 @@ def main(*args, **kwargs):
 
 main.add_command(fuel)
 main.add_command(vehicle)
+main.add_command(bulk)

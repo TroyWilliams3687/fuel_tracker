@@ -31,7 +31,7 @@ import click
 @click.pass_context
 def fuel(*args, **kwargs):
     """
-
+    Work with fuel records.
 
     """
 
