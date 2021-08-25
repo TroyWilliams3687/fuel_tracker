@@ -55,36 +55,14 @@ sqlite3.register_adapter(np.int64, lambda val: int(val))
 
 # -------------
 
-
-
-"""
-CREATE TABLE VEHICLE(
-    vehicle_id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    name             TEXT NOT NULL UNIQUE,
-    make             TEXT NOT NULL,
-    model            TEXT NOT NULL,
-    year             INTEGER DEFAULT 0,
-    tank_capacity    INTEGER DEFAULT 0,
-    initial_odometer INTEGER DEFAULT 0
-);"""
-
-"""
-CREATE TABLE FUEL(
-    fuel_id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    fill_date   TIMESTAMP NOT NULL,
-    mileage     FLOAT NOT NULL DEFAULT 0 CHECK (mileage > 0),
-    fuel        FLOAT NOT NULL DEFAULT 0 CHECK (fuel > 0),
-    cost        FLOAT NOT NULL DEFAULT 0 CHECK (cost >= 0),
-    partial     BOOLEAN NOT NULL DEFAULT 0 CHECK (partial IN (0,1)),
-    comment     TEXT,
-    vehicle_id  INTEGER DEFAULT 0,
-    FOREIGN KEY(vehicle_id) REFERENCES VEHICLE(vehicle_id)
-);"""
-
 Base = declarative_base()
 
 class Vehicle(Base):
+    """
+    A model of the Vehicle table.
+    """
     __tablename__ = 'VEHICLE'
+
     vehicle_id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
     make = Column(String)
@@ -127,12 +105,17 @@ class Vehicle(Base):
         )
 
 class FuelRecord(Base):
+    """
+    A model of the FUEL table.
+    """
+
     __tablename__ = 'FUEL'
     __table_args__ = (
         CheckConstraint('mileage >= 0.0'),
         CheckConstraint('fuel >= 0.0'),
         CheckConstraint('cost >= 0.0'),
     )
+
     fuel_id = Column(Integer, primary_key=True)
     fill_date = Column(Date)
     mileage = Column(Float, default=0.0)
@@ -155,8 +138,8 @@ def get_session(path):
         future=True, # enable 2.0 future (Core)
     )
 
-    # make sure all the Tables defined by the Base classes are created
     # https://docs.sqlalchemy.org/en/14/core/metadata.html#creating-and-dropping-database-tables
+    # make sure all the Tables defined by the Base classes are created
     Base.metadata.create_all(engine)
 
     return sessionmaker(engine,future=True)
@@ -193,34 +176,3 @@ def select_vehicle_by_name(name,**kwargs):
     else:
 
         return select(Vehicle).where(Vehicle.name == name)
-
-
-
-
-# Session Context, adding items to the database - automatically commits when over
-# with Session.begin() as session:
-#     session.add(some_object)
-#     session.add(some_other_object)
-
-
-# -------------
-# def get_authors(session):
-#     """Get a list of author objects sorted by last name"""
-#     return session.query(Author).order_by(Author.last_name).all()
-
-
-# def get_books_by_publishers(session, ascending=True):
-#     """Get a list of publishers and the number of books they've published"""
-#     if not isinstance(ascending, bool):
-#         raise ValueError(f"Sorting value invalid: {ascending}")
-
-#     direction = asc if ascending else desc
-
-#     return (
-#         session.query(
-#             Publisher.name, func.count(Book.title).label("total_books")
-#         )
-#         .join(Publisher.books)
-#         .group_by(Publisher.name)
-#         .order_by(direction("total_books"))
-#     )
