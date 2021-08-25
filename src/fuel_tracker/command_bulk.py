@@ -33,9 +33,14 @@ from sqlalchemy import select
 # ------------
 # Custom Modules
 
-from .models import Vehicle
-from .models import FuelRecord
-from .models import select_vehicle
+from .models import (
+    Vehicle,
+    FuelRecord,
+    select_vehicle_by_id,
+    select_vehicle_by_name,
+)
+
+from .common import is_int
 
 # -------------
 
@@ -163,19 +168,15 @@ def delete(*args, **kwargs):
         for vid in kwargs['vehicles']:
             click.echo(f'Deleting {vid}...')
 
-            # # do we have an integer or a string?
-            # try:
+             # do we have an integer or a string?
+            if is_int(vid):
+                # select the vehicle by id
+                statement = select_vehicle_by_id(vid)
 
-            #     # If vid is an integer, delete by integer
-            #     int_id = int(vid)
-            #     statement = select(Vehicle).where(Vehicle.vehicle_id == int_id)
+            else:
 
-            # except ValueError:
-
-            #     # we have a string, retrieve it by
-            #     statement = select(Vehicle).where(Vehicle.name == vid)
-
-            statement = select_vehicle(vid)
+                # select the vehicle by name
+                statement = select_vehicle_by_name(vid)
 
             # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
             selected_vehicle = session.execute(statement).first()
@@ -266,8 +267,28 @@ def export(*args, **kwargs):
         for vid in kwargs['vehicles']:
             click.echo(f'Exporting {vid}...')
 
-            statement = select_vehicle(vid)
+            # do we have an integer or a string?
+            if is_int(vid):
+                # select the vehicle by id
+                statement = select_vehicle_by_id(vid)
+
+            else:
+
+                # select the vehicle by name
+                statement = select_vehicle_by_name(vid)
+
+            # --------
+            # This works
+            # click.echo(statement)
+
+            # df = pd.read_sql(statement, session.connection())
+            # click.echo(df)
+            # --------
 
             # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
             selected_vehicle = session.execute(statement).first()
 
+            vehicle = selected_vehicle[0]
+
+            click.echo(vehicle)
+            click.echo(f'Fuel Records: {len(vehicle.fuel_records)}')

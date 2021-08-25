@@ -78,9 +78,11 @@ class Vehicle(Base):
     initial_odometer = Column(Float, default=0.0)
     fuel_records = relationship(
         "FuelRecord",
-        order_by="FuelRecord.fill_date",
         cascade="all,delete-orphan",
-        backref="Vehicle",
+        order_by="desc(FuelRecord.fill_date)",
+        primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id"
+        # order_by="FuelRecord.fill_date",
+        # backref="Vehicle",
         # passive_deletes=True,
     )
 
@@ -124,7 +126,7 @@ class FuelRecord(Base):
     cost = Column(Float, default=0.0)
     partial = Column(Boolean)
     comment = Column(String)
-    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete="CASCADE"))
+    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id"))
 
 
 def get_session(path):
@@ -145,25 +147,22 @@ def get_session(path):
 
     return sessionmaker(engine,future=True)
 
-
-def select_vehicle(name_id):
+def select_vehicle_by_id(vid):
     """
-    Given the vehicle id or name, return the SQL select statement that
+    Given the vehicle id, return the SQL select statement that
     will correctly select the vehicle from the database.
-
     """
 
-    # do we have an integer or a string?
-    try:
+    return select(Vehicle).where(Vehicle.vehicle_id == vid)
 
-        # If vid is an integer, delete by integer
-        int_id = int(name_id)
-        return select(Vehicle).where(Vehicle.vehicle_id == int_id)
+def select_vehicle_by_name(name):
+    """
+    Given the vehicle name, return the SQL select statement that
+    will correctly select the vehicle from the database.
+    """
 
-    except ValueError:
+    return select(Vehicle).where(Vehicle.name == name)
 
-        # we have a string, retrieve it by
-        return select(Vehicle).where(Vehicle.name == name_id)
 
 
 # def add_vehicle(session, vehicles)
