@@ -107,7 +107,16 @@ def add(*args, **kwargs):
         click.echo(f'Processing {spreadsheet}...')
 
         df = pd.read_excel(spreadsheet,  parse_dates=['fill_date'])
+
+        # click.echo(df.dtypes)
+        # click.echo(df)
+
+        df['partial'] = df['partial'].fillna(0)
         df = df.astype({'partial':bool})
+        # click.echo('==========')
+        # click.echo(df.dtypes)
+        # click.echo(df)
+        # return
 
         vehicles = {}
         vehicle_columns = [
