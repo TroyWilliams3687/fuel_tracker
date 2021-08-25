@@ -161,21 +161,38 @@ def get_session(path):
 
     return sessionmaker(engine,future=True)
 
-def select_vehicle_by_id(vid):
+def select_vehicle_by_id(vid,**kwargs):
     """
     Given the vehicle id, return the SQL select statement that
     will correctly select the vehicle from the database.
+
+    Optionally you can pass in the join=True and it will return a query
+    to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    return select(Vehicle).where(Vehicle.vehicle_id == vid)
+    if kwargs.get('join', False):
 
-def select_vehicle_by_name(name):
+        return select(Vehicle, FuelRecord).where(Vehicle.vehicle_id == vid).join(Vehicle.fuel_records)
+
+    else:
+
+        return select(Vehicle).where(Vehicle.vehicle_id == vid)
+
+def select_vehicle_by_name(name,**kwargs):
     """
     Given the vehicle name, return the SQL select statement that
     will correctly select the vehicle from the database.
+
+    Optionally you can pass in the join=True and it will return a query
+    to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    return select(Vehicle).where(Vehicle.name == name)
+    if kwargs.get('join', False):
+        return select(Vehicle, FuelRecord).where(Vehicle.name == name).join(Vehicle.fuel_records)
+
+    else:
+
+        return select(Vehicle).where(Vehicle.name == name)
 
 
 

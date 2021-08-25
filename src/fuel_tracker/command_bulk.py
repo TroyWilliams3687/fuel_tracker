@@ -26,9 +26,7 @@ from datetime import date
 
 import click
 import pandas as pd
-
-# from sqlalchemy import select, update, delete, values
-from sqlalchemy import select
+from pandas import ExcelWriter
 
 # ------------
 # Custom Modules
@@ -224,7 +222,7 @@ def delete(*args, **kwargs):
         readable=False,
         path_type=Path,
     ),
-    help="Write the vehicle(s) and fuel records to an open office spreadsheet.",
+    help="Write the vehicle(s) and fuel records to an Open Office spreadsheet (*.ods).",
 )
 @click.option(
     "--csv",
@@ -258,39 +256,68 @@ def export(*args, **kwargs):
     $ ft bulk export passat interpid --ods=file.ods
     $ ft bulk export passat interpid --csv=file.csv
     $ ft bulk export passat interpid --excel=file.xlsx --ods=file.ods --csv=file.csv
+
+    $ ft bulk export passat intrepid 2 --ods=./output/file.ods
+    $ ft bulk export passat intrepid soul matrix --ods=./output/data.ods --csv=./output/data.csv
     """
 
     ctx = args[0]
     config = ctx.obj["config"]
 
+    output = []
     with config['db'].begin() as session:
         for vid in kwargs['vehicles']:
             click.echo(f'Exporting {vid}...')
+            click.echo()
 
             # do we have an integer or a string?
             if is_int(vid):
                 # select the vehicle by id
-                statement = select_vehicle_by_id(vid)
+                statement = select_vehicle_by_id(vid, join=True)
 
             else:
 
                 # select the vehicle by name
-                statement = select_vehicle_by_name(vid)
+                statement = select_vehicle_by_name(vid, join=True)
 
-            # --------
-            # This works
-            click.echo(statement)
+            page_name = f'{vid}'
 
             df = pd.read_sql(statement, session.connection())
+            df = df.drop(['vehicle_id', 'vehicle_id_1'], axis=1)
+
+            # click.echo(statement)
+            # click.echo(df)
+
+            if kwargs.get('csv', False):
+                csv_file = kwargs.get('csv')
+                df.to_csv(csv_file.parent / Path(f'{csv_file.stem}_{page_name}.csv'))
+
+            output.append((page_name, df))
+
+
+
+    if kwargs.get('excel', False):
+
+        with ExcelWriter(kwargs.get('excel')) as writer:
+
+            for page_name, df in output:
+                df.to_excel(writer, page_name, index=False)
+
+            writer.save()
+
+    elif kwargs.get('ods', False):
+
+        with ExcelWriter(kwargs.get('ods'), engine="odf") as writer:
+
+            for page_name, df in output:
+                df.to_excel(writer, page_name, index=False)
+
+            writer.save()
+
+    else:
+
+        for page_name, df in output:
             click.echo(df)
-            # --------
+            click.echo()
 
-            # -----
-            # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
-            selected_vehicle = session.execute(statement).first()
-
-            vehicle = selected_vehicle[0]
-
-            click.echo(vehicle)
-            click.echo(f'Fuel Records: {len(vehicle.fuel_records)}')
-
+    click.secho('Completed!', fg='cyan')
