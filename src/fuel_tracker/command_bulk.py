@@ -108,15 +108,10 @@ def add(*args, **kwargs):
 
         df = pd.read_excel(spreadsheet,  parse_dates=['fill_date'])
 
-        # click.echo(df.dtypes)
-        # click.echo(df)
-
+        # Fill NaN with 0, before casting to bool. Otherwise we end up
+        # with a lot of True values.
         df['partial'] = df['partial'].fillna(0)
         df = df.astype({'partial':bool})
-        # click.echo('==========')
-        # click.echo(df.dtypes)
-        # click.echo(df)
-        # return
 
         vehicles = {}
         vehicle_columns = [
@@ -302,8 +297,6 @@ def export(*args, **kwargs):
                 df.to_csv(csv_file.parent / Path(f'{csv_file.stem}_{page_name}.csv'))
 
             output.append((page_name, df))
-
-
 
     if kwargs.get('excel', False):
 
