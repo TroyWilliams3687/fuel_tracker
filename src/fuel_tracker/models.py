@@ -26,13 +26,15 @@ Reference:
 # 3rd Party - From PyPI
 
 from sqlalchemy.ext.declarative import declarative_base
+
 from sqlalchemy import Column, ForeignKey, CheckConstraint
 from sqlalchemy import Integer, Float, String, Boolean, Date
+from sqlalchemy import select
 # from sqlalchemy import Table
-from sqlalchemy.orm import relationship
-
 from sqlalchemy import create_engine
+
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship
 
 # ------------
 # Custom Modules
@@ -142,6 +144,26 @@ def get_session(path):
     Base.metadata.create_all(engine)
 
     return sessionmaker(engine,future=True)
+
+
+def select_vehicle(name_id):
+    """
+    Given the vehicle id or name, return the SQL select statement that
+    will correctly select the vehicle from the database.
+
+    """
+
+    # do we have an integer or a string?
+    try:
+
+        # If vid is an integer, delete by integer
+        int_id = int(name_id)
+        return select(Vehicle).where(Vehicle.vehicle_id == int_id)
+
+    except ValueError:
+
+        # we have a string, retrieve it by
+        return select(Vehicle).where(Vehicle.name == name_id)
 
 
 # def add_vehicle(session, vehicles)

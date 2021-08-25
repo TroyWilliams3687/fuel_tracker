@@ -28,13 +28,14 @@ import click
 import pandas as pd
 
 # from sqlalchemy import select, update, delete, values
-from sqlalchemy import select, delete
+from sqlalchemy import select
 
 # ------------
 # Custom Modules
 
 from .models import Vehicle
 from .models import FuelRecord
+from .models import select_vehicle
 
 # -------------
 
@@ -162,23 +163,24 @@ def delete(*args, **kwargs):
         for vid in kwargs['vehicles']:
             click.echo(f'Deleting {vid}...')
 
-            # do we have an integer or a string?
-            try:
+            # # do we have an integer or a string?
+            # try:
 
-                # If vid is an integer, delete by integer
-                int_id = int(vid)
-                statement = select(Vehicle).where(Vehicle.vehicle_id == int_id)
+            #     # If vid is an integer, delete by integer
+            #     int_id = int(vid)
+            #     statement = select(Vehicle).where(Vehicle.vehicle_id == int_id)
 
-            except ValueError:
+            # except ValueError:
 
-                # we have a string, retrieve it by
-                statement = select(Vehicle).where(Vehicle.name == vid)
+            #     # we have a string, retrieve it by
+            #     statement = select(Vehicle).where(Vehicle.name == vid)
 
-            # NOTE: select(Vehicle) returns the SQL
+            statement = select_vehicle(vid)
 
+            # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
             selected_vehicle = session.execute(statement).first()
 
-            # NOTE: session.execute returns an iterable.
+            # NOTE: session.execute returns an iterable. Deal with it appropriately
 
             if len(selected_vehicle) == 1:
                 session.delete(selected_vehicle[0])
@@ -194,3 +196,78 @@ def delete(*args, **kwargs):
                 for v in selected_vehicle:
                     click.secho(v, fg='red')
                     click.echo()
+
+
+@bulk.command('export')
+@click.pass_context
+@click.argument(
+    "vehicles",
+    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    type=str,
+)
+@click.option(
+    "--excel",
+    type=click.Path(
+        exists=False,
+        dir_okay=False,
+        readable=False,
+        path_type=Path,
+    ),
+    help="Write the vehicle(s) and fuel records to an excel spreadsheet.",
+)
+@click.option(
+    "--ods",
+    type=click.Path(
+        exists=False,
+        dir_okay=False,
+        readable=False,
+        path_type=Path,
+    ),
+    help="Write the vehicle(s) and fuel records to an open office spreadsheet.",
+)
+@click.option(
+    "--csv",
+    type=click.Path(
+        exists=False,
+        dir_okay=False,
+        readable=False,
+        path_type=Path,
+    ),
+    help="Write the vehicle(s) and fuel records to a csv file.",
+)
+def export(*args, **kwargs):
+    """
+    bulk export the specified vehicles by name or id separated by spaces
+    on the command line to:
+
+    - csv
+    - excel
+    - ods - open office format
+    - stdout
+
+    The vehicle and fuel records will be combined into one table and
+    exported to the file. If an output format isn't selected, it will
+    be displayed in the terminal.
+
+    # Usage
+
+    \b
+    $ ft bulk export passat 2
+    $ ft bulk export passat interpid --excel=file.xlsx
+    $ ft bulk export passat interpid --ods=file.ods
+    $ ft bulk export passat interpid --csv=file.csv
+    $ ft bulk export passat interpid --excel=file.xlsx --ods=file.ods --csv=file.csv
+    """
+
+    ctx = args[0]
+    config = ctx.obj["config"]
+
+    with config['db'].begin() as session:
+        for vid in kwargs['vehicles']:
+            click.echo(f'Exporting {vid}...')
+
+            statement = select_vehicle(vid)
+
+            # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
+            selected_vehicle = session.execute(statement).first()
+
