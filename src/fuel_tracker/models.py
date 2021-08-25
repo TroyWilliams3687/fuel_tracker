@@ -25,6 +25,7 @@ Reference:
 # ------------
 # 3rd Party - From PyPI
 
+
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import Column, ForeignKey, CheckConstraint
@@ -36,10 +37,25 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
 
+
 # ------------
 # Custom Modules
 
 # -------------
+# sqlite adapters
+
+# Register the following adapter so that numpy integers can vb converted
+# to regular integers otherwise they will be blobs
+
+# https://stackoverflow.com/questions/57628273/saving-numpy-integers-in-sqlite-database-with-sqlalchemy
+import sqlite3
+import numpy as np
+
+sqlite3.register_adapter(np.int64, lambda val: int(val))
+
+# -------------
+
+
 
 """
 CREATE TABLE VEHICLE(
@@ -79,11 +95,9 @@ class Vehicle(Base):
     fuel_records = relationship(
         "FuelRecord",
         cascade="all,delete-orphan",
-        order_by="desc(FuelRecord.fill_date)",
+        order_by="FuelRecord.fill_date",
         primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id"
-        # order_by="FuelRecord.fill_date",
-        # backref="Vehicle",
-        # passive_deletes=True,
+        # order_by="desc(FuelRecord.fill_date)",
     )
 
 
@@ -163,20 +177,6 @@ def select_vehicle_by_name(name):
 
     return select(Vehicle).where(Vehicle.name == name)
 
-
-
-# def add_vehicle(session, vehicles)
-#     """
-
-#     # Parameters (kwargs)
-
-#     vehicles:list(Vehicle)
-
-#     """
-
-#     with session.begin():
-#         for v in vehicles:
-#             session.add(v)
 
 
 

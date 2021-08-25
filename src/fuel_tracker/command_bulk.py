@@ -279,12 +279,13 @@ def export(*args, **kwargs):
 
             # --------
             # This works
-            # click.echo(statement)
+            click.echo(statement)
 
-            # df = pd.read_sql(statement, session.connection())
-            # click.echo(df)
+            df = pd.read_sql(statement, session.connection())
+            click.echo(df)
             # --------
 
+            # -----
             # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
             selected_vehicle = session.execute(statement).first()
 
@@ -292,3 +293,4 @@ def export(*args, **kwargs):
 
             click.echo(vehicle)
             click.echo(f'Fuel Records: {len(vehicle.fuel_records)}')
+
