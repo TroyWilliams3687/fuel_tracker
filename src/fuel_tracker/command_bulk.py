@@ -311,9 +311,21 @@ def export(*args, **kwargs):
 
     if kwargs.get('ods', False):
 
-        with ExcelWriter(kwargs.get('ods'), engine="odf") as writer:
+        with ExcelWriter(
+            kwargs.get('ods'),
+            engine="odf",
+            date_format='YYYY-MM-DD',
+            datetime_format='YYYY-MM-DD HH:MM:SS'
+        ) as writer:
 
             for page_name, df in output:
+                # df['fill_date'] = pd.to_datetime(df['fill_date']).dt.date
+                # df['fill_date'] = df['fill_date'].dt.date
+
+                # df['fill_date'] = df['fill_date'].astype('datetime64[ns]')
+                # click.echo(df.dtypes)
+                # click.echo(df['fill_date'].dtype)
+
                 df.to_excel(writer, page_name, index=False)
 
             writer.save()
