@@ -50,12 +50,6 @@ def fuel(*args, **kwargs):
     pass
 
 
-# how to format datetime - can accept multiple value strings in try them in a particular order
-# click.DateTime(formats=[`%Y-%m-%d`, `%d/%m/%y`, `%m/%d/%y`, `%d/%m/%Y`])
-# https://click.palletsprojects.com/en/8.0.x/api/#click.DateTime
-
-# see vehicle for the prompts...
-
 @fuel.command('add')
 @click.pass_context
 @click.argument(
@@ -64,7 +58,7 @@ def fuel(*args, **kwargs):
 )
 @click.option(
     "--date",
-    type=click.DateTime(formats=['%Y-%m-%d', '%d/%m/%y', '%m/%d/%y', '%d/%m/%Y']),
+    type=click.DateTime(formats=['%Y-%m-%d', '%d/%m/%y', '%m/%d/%y', '%d/%m/%Y','%m/%d/%Y']),
     prompt=False,
     help="The date fuel was added to the vehicle. Support 5 major date formats in the following order: Y-m-d, d/m/Y, d/m/y, m/d/Y, m/d/y (first match is taken)",
 )
@@ -108,10 +102,10 @@ def add(*args, **kwargs):
     Input date formats can be of the form:
 
     - `%Y-%m-%d` - year-month-day  2021-08-12
-    - `%d/%m/%Y` - day/month/year  12/08/2021
-    - `%d/%m/%y` - day/month/year    12/08/21
-    - `%m/%d/%Y` - month/day/year  08/12/2021
+    - `%d/%m/%y` - day/month/year  12/08/21
     - `%m/%d/%y` - month/day/year  08/12/21
+    - `%d/%m/%Y` - day/month/year  12/08/2021
+    - `%m/%d/%Y` - month/day/year  08/12/2021
 
 
     NOTE: If you use any of the date formats that have a `/`in them you

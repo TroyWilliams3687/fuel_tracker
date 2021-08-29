@@ -85,9 +85,11 @@ def add(*args, **kwargs):
     - tank_capacity
     - initial_odometer
     - fill_date
-    - mileage fuel
+    - mileage
+    - fuel
     - cost
-    - partial comment
+    - partial
+    - comment
 
     NOTE: The order doesn't matter.
 
