@@ -309,7 +309,7 @@ def export(*args, **kwargs):
 
             writer.save()
 
-    elif kwargs.get('ods', False):
+    if kwargs.get('ods', False):
 
         with ExcelWriter(kwargs.get('ods'), engine="odf") as writer:
 
@@ -318,7 +318,7 @@ def export(*args, **kwargs):
 
             writer.save()
 
-    else:
+    if not kwargs.get('excel', False) and kwargs.get('ods', False):
 
         for page_name, df in output:
             click.echo(df)
