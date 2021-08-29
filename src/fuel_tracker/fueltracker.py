@@ -33,6 +33,7 @@ from .models import get_session
 from .command_fuel import fuel
 from .command_vehicle import vehicle
 from .command_bulk import bulk
+from .command_report import report
 
 # -------------
 
@@ -114,3 +115,4 @@ def main(*args, **kwargs):
 main.add_command(fuel)
 main.add_command(vehicle)
 main.add_command(bulk)
+main.add_command(report)

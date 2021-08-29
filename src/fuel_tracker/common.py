@@ -41,3 +41,24 @@ def is_int(s):
     except:
 
         return False
+
+def integer_or_string(items):
+    """
+    given a list of strings return two lists, the first list will be the
+    strings that can be converted to integers. The second list will be
+    the list of strings that cannot be converted to a string.
+    """
+
+    string_items = []
+    number_items = []
+
+    for item in items:
+
+        if is_int(item):
+            number_items.append(item)
+
+        else:
+            string_items.append(item)
+
+    return number_items, string_items
+

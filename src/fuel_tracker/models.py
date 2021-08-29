@@ -72,9 +72,10 @@ class Vehicle(Base):
     initial_odometer = Column(Float, default=0.0)
     fuel_records = relationship(
         "FuelRecord",
-        cascade="all,delete-orphan",
+        cascade="all,delete-orphan,save-update",
         order_by="FuelRecord.fill_date",
-        primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id"
+        primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id",
+        #lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/
         # order_by="desc(FuelRecord.fill_date)",
     )
 
@@ -82,7 +83,8 @@ class Vehicle(Base):
     def __str__(self):
 
         msg = (
-            f"Name (id):     {self.name} ({self.vehicle_id})",
+            f"id:            {self.vehicle_id}",
+            f"Name:          {self.name}",
             f"Make:          {self.make}",
             f"Model:         {self.model}",
             f"Year:          {self.year}",
@@ -101,7 +103,7 @@ class Vehicle(Base):
             f"model={self.model}, "
             f"year={self.year}, "
             f"tank_capacity={self.tank_capacity}, "
-            f"initial_odometer={self.initial_odometer}"
+            f"initial_odometer={self.initial_odometer})"
         )
 
 class FuelRecord(Base):
@@ -125,6 +127,18 @@ class FuelRecord(Base):
     comment = Column(String)
     vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id"))
 
+    def __repr__(self):
+
+        return (
+            f"FuelRecord(fuel_id={self.fuel_id}, "
+            f"fill_date={self.fill_date}, "
+            f"mileage={self.mileage}, "
+            f"fuel={self.fuel}, "
+            f"cost={self.cost}, "
+            f"partial={self.partial}, "
+            f"comment={self.comment}, "
+            f"vehicle_id={self.vehicle_id})"
+        )
 
 def get_session(path):
     """
