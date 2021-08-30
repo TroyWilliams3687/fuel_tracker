@@ -314,18 +314,15 @@ def export(*args, **kwargs):
         with ExcelWriter(
             kwargs.get('ods'),
             engine="odf",
-            date_format='YYYY-MM-DD',
-            datetime_format='YYYY-MM-DD HH:MM:SS'
         ) as writer:
 
             for page_name, df in output:
-                # df['fill_date'] = pd.to_datetime(df['fill_date']).dt.date
-                # df['fill_date'] = df['fill_date'].dt.date
-
-                # df['fill_date'] = df['fill_date'].astype('datetime64[ns]')
-                # click.echo(df.dtypes)
-                # click.echo(df['fill_date'].dtype)
-
+                # for some reason, export the fill_date as a datetime to
+                # ods assigns the cell formatting as a number. In the
+                # spreadsheet we can change the format to date and the
+                # value is displayed correctly, but the user shouldn't
+                # have to do that. We'll convert it to a string and leave it at that.
+                df['fill_date'] = pd.to_datetime(df['fill_date']).dt.strftime('%Y-%m-%d')
                 df.to_excel(writer, page_name, index=False)
 
             writer.save()
