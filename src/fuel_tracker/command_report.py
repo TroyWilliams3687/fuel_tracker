@@ -236,3 +236,19 @@ def show(*args, **kwargs):
 
             # Write to excel/ods/csv
 
+
+# - Export to csv, excel, ods <- see bulk export
+# - --summary - display per year stats
+#   - for every year, display:
+#       - total fill ups
+#       - total mileage
+#       - total fuel
+#       - total cost
+#       - average mileage
+#       - average fuel
+#       - average cost
+#       - average days
+#       - average $/l
+#       - l/100km
+#       - mpg (us)
+#       - mpg (imp)
