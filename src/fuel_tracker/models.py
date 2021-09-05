@@ -72,7 +72,7 @@ class Vehicle(Base):
     initial_odometer = Column(Float, default=0.0)
     fuel_records = relationship(
         "FuelRecord",
-        cascade="all,delete-orphan,save-update",
+        cascade="all, delete, delete-orphan, save-update", #https://docs.sqlalchemy.org/en/14/orm/cascades.html?highlight=cascade%20save%20update#cascade-save-update
         order_by="FuelRecord.fill_date",
         primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id",
         #lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/
@@ -125,7 +125,7 @@ class FuelRecord(Base):
     cost = Column(Float, default=0.0)
     partial = Column(Boolean)
     comment = Column(String)
-    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id"))
+    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete='CASCADE'))
 
     def __repr__(self):
 
