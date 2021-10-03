@@ -195,6 +195,7 @@ def select_vehicle_by_name(name, **kwargs):
     """
 
     if kwargs.get("join", False):
+
         return (
             select(Vehicle, FuelRecord)
             .where(Vehicle.name == name)
