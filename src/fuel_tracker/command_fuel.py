@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -36,6 +36,7 @@ from .common import is_int
 
 # -------------
 
+
 @click.group("fuel")
 @click.pass_context
 def fuel(*args, **kwargs):
@@ -50,7 +51,7 @@ def fuel(*args, **kwargs):
     pass
 
 
-@fuel.command('add')
+@fuel.command("add")
 @click.pass_context
 @click.argument(
     "vehicle",
@@ -58,7 +59,9 @@ def fuel(*args, **kwargs):
 )
 @click.option(
     "--date",
-    type=click.DateTime(formats=['%Y-%m-%d', '%d/%m/%y', '%m/%d/%y', '%d/%m/%Y','%m/%d/%Y']),
+    type=click.DateTime(
+        formats=["%Y-%m-%d", "%d/%m/%y", "%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"]
+    ),
     prompt=False,
     help="The date fuel was added to the vehicle. Support 5 major date formats in the following order: Y-m-d, d/m/Y, d/m/y, m/d/Y, m/d/y (first match is taken)",
 )
@@ -121,9 +124,9 @@ def add(*args, **kwargs):
     ctx = args[0]
     config = ctx.obj["config"]
 
-    vid = kwargs['vehicle']
+    vid = kwargs["vehicle"]
 
-    with config['db'].begin() as session:
+    with config["db"].begin() as session:
 
         # do we have an integer or a string?
         if is_int(vid):
@@ -139,11 +142,13 @@ def add(*args, **kwargs):
         selected_vehicle = session.execute(statement).first()
 
         if selected_vehicle is None:
-            click.secho(f'{vid} does not resolve to a vehicle!', fg='red')
-            click.secho('Use the number or the name from one of these:', fg='cyan')
+            click.secho(f"{vid} does not resolve to a vehicle!", fg="red")
+            click.secho("Use the number or the name from one of these:", fg="cyan")
 
-            for valid_vehicle in  session.query(Vehicle).all():
-                click.secho(f'{valid_vehicle.vehicle_id} - {valid_vehicle.name}', fg='magenta')
+            for valid_vehicle in session.query(Vehicle).all():
+                click.secho(
+                    f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}", fg="magenta"
+                )
 
             ctx.exit()
 
@@ -151,31 +156,39 @@ def add(*args, **kwargs):
 
         # Now that we have a valid vehicle, let's make sure we have valid data.
 
-
         data = {}
 
-        data['date'] = click.prompt(
-            "Date",
-            type=click.DateTime(formats=['%Y-%m-%d', '%d/%m/%y', '%m/%d/%y', '%d/%m/%Y']),
-        ) if kwargs['date'] is None else kwargs['date']
+        data["date"] = (
+            click.prompt(
+                "Date",
+                type=click.DateTime(
+                    formats=["%Y-%m-%d", "%d/%m/%y", "%m/%d/%y", "%d/%m/%Y"]
+                ),
+            )
+            if kwargs["date"] is None
+            else kwargs["date"]
+        )
 
-        for key in ('fuel', 'mileage', 'cost'):
+        for key in ("fuel", "mileage", "cost"):
 
-            data[key] = click.prompt(
-            f"{key.title()}",
-            type=float,
-        ) if kwargs[key] is None else kwargs[key]
+            data[key] = (
+                click.prompt(
+                    f"{key.title()}",
+                    type=float,
+                )
+                if kwargs[key] is None
+                else kwargs[key]
+            )
 
-        data['partial'] = kwargs['partial']
-        data['comment'] = kwargs['comment']
+        data["partial"] = kwargs["partial"]
+        data["comment"] = kwargs["comment"]
 
-        data['fill_date'] = data.pop('date')
+        data["fill_date"] = data.pop("date")
 
         # plot the records and ask for confirmation to proceed:
 
-
         click.echo()
-        click.echo(f'{selected_vehicle.vehicle_id} - {selected_vehicle.name}')
+        click.echo(f"{selected_vehicle.vehicle_id} - {selected_vehicle.name}")
         click.echo(f'Date    = {data["fill_date"]}')
         click.echo(f'Fuel    = {data["fuel"]}')
         click.echo(f'Mileage = {data["mileage"]}')
@@ -183,12 +196,15 @@ def add(*args, **kwargs):
         click.echo(f'Partial = {data["partial"]}')
         click.echo(f'Comment = {data["comment"]}')
 
-        if click.confirm('Is the Fuel Record Correct?', abort=True, default=True):
+        if click.confirm("Is the Fuel Record Correct?", abort=True, default=True):
 
             selected_vehicle.fuel_records.append(FuelRecord(**data))
             session.flush()
 
-            click.echo(f'{len(selected_vehicle.fuel_records)} Fuel Records associated with the vehicle.')
+            click.echo(
+                f"{len(selected_vehicle.fuel_records)} Fuel Records associated with the vehicle."
+            )
+
 
 # ft fuel show passat --records=10 <- default
 # ft fuel show passat --records="all"

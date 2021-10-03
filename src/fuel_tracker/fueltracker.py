@@ -101,7 +101,7 @@ def main(*args, **kwargs):
 
     $ ft fuel add passat
 
-    Sho
+    Show various reports:
 
     $ ft report show passat
 

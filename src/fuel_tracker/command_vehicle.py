@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -31,6 +31,7 @@ from .models import Vehicle
 
 # -------------
 
+
 @click.group("vehicle")
 @click.pass_context
 def vehicle(*args, **kwargs):
@@ -46,7 +47,7 @@ def vehicle(*args, **kwargs):
     pass
 
 
-@vehicle.command('add')
+@vehicle.command("add")
 @click.pass_context
 @click.option(
     "--name",
@@ -68,18 +69,20 @@ def vehicle(*args, **kwargs):
 )
 @click.option(
     "--year",
-    type=click.DateTime(formats=['%Y']),
+    type=click.DateTime(formats=["%Y"]),
     prompt=True,
     help="The year of the vehicle. It should be 4 digits - 2021 for example.",
 )
 @click.option(
-    "--tank", "tank_capacity",
+    "--tank",
+    "tank_capacity",
     type=float,
     prompt=True,
     help="The fuel capacity in either liters (default) or gallons.",
 )
 @click.option(
-    "--initial-odo", "initial_odometer",
+    "--initial-odo",
+    "initial_odometer",
     type=str,
     prompt=True,
     help="The initial odometer reading in either kilometers (default) or miles.",
@@ -98,23 +101,24 @@ def add(*args, **kwargs):
     ctx = args[0]
     config = ctx.obj["config"]
 
-    if kwargs['name'] is None:
-        kwargs['name'] = kwargs['model']
+    if kwargs["name"] is None:
+        kwargs["name"] = kwargs["model"]
 
-    kwargs['year'] = int(kwargs['year'].strftime('%y'))
+    kwargs["year"] = int(kwargs["year"].strftime("%y"))
 
     new_vehicle = Vehicle(**kwargs)
 
-    with config['db'].begin() as session:
+    with config["db"].begin() as session:
         session.add(new_vehicle)
 
-        session.flush() # get the new id
+        session.flush()  # get the new id
 
         click.echo()
-        click.echo('Added:')
-        click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
+        click.echo("Added:")
+        click.echo(
+            new_vehicle
+        )  # create a vehicle format function that can handle the units (liters and kilometers)
         click.echo()
-
 
 
 # ft vehicle show <- display all of the vehicles in the database by id and name

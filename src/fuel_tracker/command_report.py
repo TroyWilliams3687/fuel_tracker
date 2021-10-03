@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -38,6 +38,7 @@ from .common import integer_or_string
 
 # -------------
 
+
 @click.group("report")
 @click.pass_context
 def report(*args, **kwargs):
@@ -52,11 +53,11 @@ def report(*args, **kwargs):
     pass
 
 
-@report.command('show')
+@report.command("show")
 @click.pass_context
 @click.argument(
     "vehicles",
-    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
     type=str,
 )
 @click.option(
@@ -77,7 +78,7 @@ def report(*args, **kwargs):
 )
 def show(*args, **kwargs):
     """
-
+    Display fuel information about the vehicles.
 
     # Usage
 
@@ -95,51 +96,47 @@ def show(*args, **kwargs):
     config = ctx.obj["config"]
 
     # figure out which vehicles are id and which are names...
-    vehicle_ids, vehicle_names = integer_or_string(kwargs['vehicles'])
+    vehicle_ids, vehicle_names = integer_or_string(kwargs["vehicles"])
 
-    with config['db'].begin() as session:
+    with config["db"].begin() as session:
 
         selected_vehicles = []
 
         if vehicle_ids:
             selected_vehicles.extend(
-                session
-                .query(Vehicle)
+                session.query(Vehicle)
                 .filter(Vehicle.id.in_(vehicle_ids))
-                .all() # all returns objects
+                .all()  # all returns objects
             )
 
         if vehicle_names:
             selected_vehicles.extend(
-                session.query(Vehicle)
-                .filter(Vehicle.name.in_(vehicle_names))
-                .all()
+                session.query(Vehicle).filter(Vehicle.name.in_(vehicle_names)).all()
             )
 
         for v in selected_vehicles:
 
-            click.echo('-----')
+            click.echo("-----")
             click.echo(v)
             click.echo()
 
-             # This call will load all of the records - for small data
-             # sets it doesn't matter
+            # This call will load all of the records - for small data
+            # sets it doesn't matter
             # click.echo(len(v.fuel_records[-10:]))
 
             # This one will load the subset that we are interested in
             statement = (
-                session
-                .query(FuelRecord)
+                session.query(FuelRecord)
                 .filter(FuelRecord.vehicle_id == v.vehicle_id)
                 .order_by(FuelRecord.fill_date.desc())
-                .limit(kwargs['records'])
+                .limit(kwargs["records"])
                 .statement
                 # .all() # return objects
             )
 
             df = pd.read_sql(statement, session.connection())
-            df = df.drop(['vehicle_id'], axis=1)
-            df['partial'].replace(False, '', inplace=True)
+            df = df.drop(["vehicle_id"], axis=1)
+            df["partial"].replace(False, "", inplace=True)
 
             # the dataframe is generated with a statement that sorts the
             # data by fill date in descending order. This means the
@@ -154,52 +151,57 @@ def show(*args, **kwargs):
 
             # Fuel Calculations
 
-            df['$/l'] = df['cost'] / df['fuel']
-            df['l/100km'] = 100*df['fuel'] / df['mileage']
-            df['mpg (us)'] = (df['mileage']*0.621371) / (df['fuel']*0.264172) # google
-            df['mpg (imp)'] = (df['mileage']*0.621371) / (df['fuel']*0.219969) # google
-            df['days'] = df['fill_date'].diff().dt.days  # .dt.days removes the 'days' portion that would be listed
-
+            df["$/l"] = df["cost"] / df["fuel"]
+            df["l/100km"] = 100 * df["fuel"] / df["mileage"]
+            df["mpg (us)"] = (df["mileage"] * 0.621371) / (
+                df["fuel"] * 0.264172
+            )  # google
+            df["mpg (imp)"] = (df["mileage"] * 0.621371) / (
+                df["fuel"] * 0.219969
+            )  # google
+            df["days"] = (
+                df["fill_date"].diff().dt.days
+            )  # .dt.days removes the 'days' portion that would be listed
 
             # reorder the columns before we start removing them
             df = df.reindex(
                 columns=[
-                    'fuel_id',
-                    'fill_date',
-                    'days',
-                    'mileage',
-                    'fuel',
-                    'cost',
-                    '$/l',
-                    'l/100km',
-                    'mpg (us)',
-                    'mpg (imp)',
-                    'partial',
-                    'comments',
+                    "fuel_id",
+                    "fill_date",
+                    "days",
+                    "mileage",
+                    "fuel",
+                    "cost",
+                    "$/l",
+                    "l/100km",
+                    "mpg (us)",
+                    "mpg (imp)",
+                    "partial",
+                    "comments",
                 ],
             )
 
-            if kwargs['hide_partial']:
-                df = df.drop(['partial'], axis=1)
+            if kwargs["hide_partial"]:
+                df = df.drop(["partial"], axis=1)
 
-            if kwargs['hide_comments']:
-                df = df.drop(['comments'], axis=1)
+            if kwargs["hide_comments"]:
+                df = df.drop(["comments"], axis=1)
 
             # -------
             # Summary Rows
 
             sum_columns = [
-                'mileage',
-                'fuel',
-                'cost',
-                'days',
+                "mileage",
+                "fuel",
+                "cost",
+                "days",
             ]
 
             average_columns = [
-                '$/l',
-                'l/100km',
-                'mpg (us)',
-                'mpg (imp)',
+                "$/l",
+                "l/100km",
+                "mpg (us)",
+                "mpg (imp)",
             ]
 
             # calculate the summary stats on the dataframe before adding the rows.
@@ -208,19 +210,18 @@ def show(*args, **kwargs):
             maximums = df[sum_columns + average_columns].max(numeric_only=True, axis=0)
             averages = df[sum_columns + average_columns].mean(numeric_only=True, axis=0)
 
-
             df_totals = pd.concat(
                 [totals, averages, maximums, minimums],
-                keys=['Total', 'Average', 'Max', 'Min'],
+                keys=["Total", "Average", "Max", "Min"],
                 axis=1,
             )
 
             df_totals = df_totals.round(
                 {
-                    'Total':1,
-                    'Average':1,
-                    'Max':1,
-                    'Min':1,
+                    "Total": 1,
+                    "Average": 1,
+                    "Max": 1,
+                    "Min": 1,
                 },
             )
 
@@ -232,14 +233,14 @@ def show(*args, **kwargs):
 
             df = df.round(
                 {
-                'mileage':1,
-                'fuel':3,
-                'cost':2,
-                '$/l':3,
-                'l/100km':3,
-                'mpg (us)':3,
-                'mpg (imp)':3,
-                'days':1,
+                    "mileage": 1,
+                    "fuel": 3,
+                    "cost": 2,
+                    "$/l": 3,
+                    "l/100km": 3,
+                    "mpg (us)": 3,
+                    "mpg (imp)": 3,
+                    "days": 1,
                 },
             )
 
@@ -264,8 +265,6 @@ def show(*args, **kwargs):
                 )
 
                 click.echo()
-
-
 
             # Write to excel/ods/csv
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -56,11 +56,12 @@ def bulk(*args, **kwargs):
     """
     pass
 
-@bulk.command('add')
+
+@bulk.command("add")
 @click.pass_context
 @click.argument(
     "spreadsheet",
-    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
     type=click.Path(
         exists=True,
         dir_okay=False,
@@ -105,51 +106,54 @@ def add(*args, **kwargs):
     ctx = args[0]
     config = ctx.obj["config"]
 
-    for spreadsheet in kwargs['spreadsheet']:
-        click.echo(f'Processing {spreadsheet}...')
+    for spreadsheet in kwargs["spreadsheet"]:
+        click.echo(f"Processing {spreadsheet}...")
 
-        df = pd.read_excel(spreadsheet,  parse_dates=['fill_date'])
+        df = pd.read_excel(spreadsheet, parse_dates=["fill_date"])
 
         # Fill NaN with 0, before casting to bool. Otherwise we end up
         # with a lot of True values.
-        df['partial'] = df['partial'].fillna(0)
-        df = df.astype({'partial':bool})
+        df["partial"] = df["partial"].fillna(0)
+        df = df.astype({"partial": bool})
 
         vehicles = {}
         vehicle_columns = [
-            'name',
-            'make',
-            'model',
-            'year',
-            'tank_capacity',
-            'initial_odometer',
+            "name",
+            "make",
+            "model",
+            "year",
+            "tank_capacity",
+            "initial_odometer",
         ]
 
         for vehicle_values, group in df.groupby(vehicle_columns):
-            new_vehicle = Vehicle(**{k:v for k, v in zip(vehicle_columns, vehicle_values)})
+            new_vehicle = Vehicle(
+                **{k: v for k, v in zip(vehicle_columns, vehicle_values)}
+            )
 
             # remove the vehicle columns from the dataframe
             fr = group.drop(vehicle_columns, axis=1)
 
             new_vehicle.fuel_records = [
-                FuelRecord(**fuel_record)
-                for fuel_record in fr.to_dict('records')
+                FuelRecord(**fuel_record) for fuel_record in fr.to_dict("records")
             ]
 
-            with config['db'].begin() as session:
+            with config["db"].begin() as session:
                 session.add(new_vehicle)
-                session.flush() # get the new id
+                session.flush()  # get the new id
 
-                click.echo(new_vehicle) # create a vehicle format function that can handle the units (liters and kilometers)
-                click.echo(f'Fuel Records: {len(new_vehicle.fuel_records)}')
+                click.echo(
+                    new_vehicle
+                )  # create a vehicle format function that can handle the units (liters and kilometers)
+                click.echo(f"Fuel Records: {len(new_vehicle.fuel_records)}")
                 click.echo()
 
 
-@bulk.command('delete')
+@bulk.command("delete")
 @click.pass_context
 @click.argument(
     "vehicles",
-    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
     type=str,
 )
 def delete(*args, **kwargs):
@@ -167,12 +171,12 @@ def delete(*args, **kwargs):
     ctx = args[0]
     config = ctx.obj["config"]
 
-    with config['db'].begin() as session:
+    with config["db"].begin() as session:
 
-        for vid in kwargs['vehicles']:
-            click.echo(f'Deleting {vid}...')
+        for vid in kwargs["vehicles"]:
+            click.echo(f"Deleting {vid}...")
 
-             # do we have an integer or a string?
+            # do we have an integer or a string?
             if is_int(vid):
                 # select the vehicle by id
                 statement = select_vehicle_by_id(vid)
@@ -191,23 +195,26 @@ def delete(*args, **kwargs):
                 session.delete(selected_vehicle[0])
 
             elif len(selected_vehicle) == 0:
-                click.secho(f'No matches for: {vid}', fg='cyan')
+                click.secho(f"No matches for: {vid}", fg="cyan")
 
             else:
-                click.secho(f'More than one vehicle returned ({len(selected_vehicle)})! Doing Nothing!', fg='red')
+                click.secho(
+                    f"More than one vehicle returned ({len(selected_vehicle)})! Doing Nothing!",
+                    fg="red",
+                )
 
-                click.secho('Here are the returned Vehicles:', fg='red')
+                click.secho("Here are the returned Vehicles:", fg="red")
 
                 for v in selected_vehicle:
-                    click.secho(v, fg='red')
+                    click.secho(v, fg="red")
                     click.echo()
 
 
-@bulk.command('export')
+@bulk.command("export")
 @click.pass_context
 @click.argument(
     "vehicles",
-    nargs=-1, # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
     type=str,
 )
 @click.option(
@@ -271,9 +278,9 @@ def export(*args, **kwargs):
     config = ctx.obj["config"]
 
     output = []
-    with config['db'].begin() as session:
-        for vid in kwargs['vehicles']:
-            click.echo(f'Exporting {vid}...')
+    with config["db"].begin() as session:
+        for vid in kwargs["vehicles"]:
+            click.echo(f"Exporting {vid}...")
             click.echo()
 
             # do we have an integer or a string?
@@ -286,33 +293,33 @@ def export(*args, **kwargs):
                 # select the vehicle by name
                 statement = select_vehicle_by_name(vid, join=True)
 
-            page_name = f'{vid}'
+            page_name = f"{vid}"
 
             df = pd.read_sql(statement, session.connection())
-            df = df.drop(['vehicle_id', 'vehicle_id_1'], axis=1)
+            df = df.drop(["vehicle_id", "vehicle_id_1"], axis=1)
 
             # click.echo(statement)
             # click.echo(df)
 
-            if kwargs.get('csv', False):
-                csv_file = kwargs.get('csv')
-                df.to_csv(csv_file.parent / Path(f'{csv_file.stem}_{page_name}.csv'))
+            if kwargs.get("csv", False):
+                csv_file = kwargs.get("csv")
+                df.to_csv(csv_file.parent / Path(f"{csv_file.stem}_{page_name}.csv"))
 
             output.append((page_name, df))
 
-    if kwargs.get('excel', False):
+    if kwargs.get("excel", False):
 
-        with ExcelWriter(kwargs.get('excel')) as writer:
+        with ExcelWriter(kwargs.get("excel")) as writer:
 
             for page_name, df in output:
                 df.to_excel(writer, page_name, index=False)
 
             writer.save()
 
-    if kwargs.get('ods', False):
+    if kwargs.get("ods", False):
 
         with ExcelWriter(
-            kwargs.get('ods'),
+            kwargs.get("ods"),
             engine="odf",
         ) as writer:
 
@@ -322,12 +329,14 @@ def export(*args, **kwargs):
                 # spreadsheet we can change the format to date and the
                 # value is displayed correctly, but the user shouldn't
                 # have to do that. We'll convert it to a string and leave it at that.
-                df['fill_date'] = pd.to_datetime(df['fill_date']).dt.strftime('%Y-%m-%d')
+                df["fill_date"] = pd.to_datetime(df["fill_date"]).dt.strftime(
+                    "%Y-%m-%d"
+                )
                 df.to_excel(writer, page_name, index=False)
 
             writer.save()
 
-    if not kwargs.get('excel', False) and kwargs.get('ods', False):
+    if not kwargs.get("excel", False) and kwargs.get("ods", False):
 
         for page_name, df in output:
             click.echo(
@@ -338,4 +347,4 @@ def export(*args, **kwargs):
             )
             click.echo()
 
-    click.secho('Completed!', fg='cyan')
+    click.secho("Completed!", fg="cyan")

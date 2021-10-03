@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -42,6 +42,7 @@ def is_int(s):
 
         return False
 
+
 def integer_or_string(items):
     """
     given a list of strings return two lists, the first list will be the
@@ -61,4 +62,3 @@ def integer_or_string(items):
             string_items.append(item)
 
     return number_items, string_items
-

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # -----------
 # SPDX-License-Identifier: MIT
@@ -31,6 +31,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, CheckConstraint
 from sqlalchemy import Integer, Float, String, Boolean, Date
 from sqlalchemy import select
+
 # from sqlalchemy import Table
 from sqlalchemy import create_engine
 
@@ -57,11 +58,13 @@ sqlite3.register_adapter(np.int64, lambda val: int(val))
 
 Base = declarative_base()
 
+
 class Vehicle(Base):
     """
     A model of the Vehicle table.
     """
-    __tablename__ = 'VEHICLE'
+
+    __tablename__ = "VEHICLE"
 
     vehicle_id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
@@ -72,13 +75,12 @@ class Vehicle(Base):
     initial_odometer = Column(Float, default=0.0)
     fuel_records = relationship(
         "FuelRecord",
-        cascade="all, delete, delete-orphan, save-update", #https://docs.sqlalchemy.org/en/14/orm/cascades.html?highlight=cascade%20save%20update#cascade-save-update
+        cascade="all, delete, delete-orphan, save-update",  # https://docs.sqlalchemy.org/en/14/orm/cascades.html?highlight=cascade%20save%20update#cascade-save-update
         order_by="FuelRecord.fill_date",
         primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id",
-        #lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/
+        # lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/
         # order_by="desc(FuelRecord.fill_date)",
     )
-
 
     def __str__(self):
 
@@ -92,7 +94,7 @@ class Vehicle(Base):
             f"Odometer:      {self.initial_odometer}",
         )
 
-        return '\n'.join(msg)
+        return "\n".join(msg)
 
     def __repr__(self):
 
@@ -106,16 +108,17 @@ class Vehicle(Base):
             f"initial_odometer={self.initial_odometer})"
         )
 
+
 class FuelRecord(Base):
     """
     A model of the FUEL table.
     """
 
-    __tablename__ = 'FUEL'
+    __tablename__ = "FUEL"
     __table_args__ = (
-        CheckConstraint('mileage >= 0.0'),
-        CheckConstraint('fuel >= 0.0'),
-        CheckConstraint('cost >= 0.0'),
+        CheckConstraint("mileage >= 0.0"),
+        CheckConstraint("fuel >= 0.0"),
+        CheckConstraint("cost >= 0.0"),
     )
 
     fuel_id = Column(Integer, primary_key=True)
@@ -125,7 +128,7 @@ class FuelRecord(Base):
     cost = Column(Float, default=0.0)
     partial = Column(Boolean)
     comment = Column(String)
-    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete='CASCADE'))
+    vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete="CASCADE"))
 
     def __repr__(self):
 
@@ -140,6 +143,7 @@ class FuelRecord(Base):
             f"vehicle_id={self.vehicle_id})"
         )
 
+
 def get_session(path):
     """
     Given the path to the sqlite database, return a session instance.
@@ -149,16 +153,17 @@ def get_session(path):
     engine = create_engine(
         f"sqlite+pysqlite:///{path}",
         echo=False,
-        future=True, # enable 2.0 future (Core)
+        future=True,  # enable 2.0 future (Core)
     )
 
     # https://docs.sqlalchemy.org/en/14/core/metadata.html#creating-and-dropping-database-tables
     # make sure all the Tables defined by the Base classes are created
     Base.metadata.create_all(engine)
 
-    return sessionmaker(engine,future=True)
+    return sessionmaker(engine, future=True)
 
-def select_vehicle_by_id(vid,**kwargs):
+
+def select_vehicle_by_id(vid, **kwargs):
     """
     Given the vehicle id, return the SQL select statement that
     will correctly select the vehicle from the database.
@@ -167,15 +172,20 @@ def select_vehicle_by_id(vid,**kwargs):
     to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    if kwargs.get('join', False):
+    if kwargs.get("join", False):
 
-        return select(Vehicle, FuelRecord).where(Vehicle.vehicle_id == vid).join(Vehicle.fuel_records)
+        return (
+            select(Vehicle, FuelRecord)
+            .where(Vehicle.vehicle_id == vid)
+            .join(Vehicle.fuel_records)
+        )
 
     else:
 
         return select(Vehicle).where(Vehicle.vehicle_id == vid)
 
-def select_vehicle_by_name(name,**kwargs):
+
+def select_vehicle_by_name(name, **kwargs):
     """
     Given the vehicle name, return the SQL select statement that
     will correctly select the vehicle from the database.
@@ -184,8 +194,12 @@ def select_vehicle_by_name(name,**kwargs):
     to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    if kwargs.get('join', False):
-        return select(Vehicle, FuelRecord).where(Vehicle.name == name).join(Vehicle.fuel_records)
+    if kwargs.get("join", False):
+        return (
+            select(Vehicle, FuelRecord)
+            .where(Vehicle.name == name)
+            .join(Vehicle.fuel_records)
+        )
 
     else:
 
