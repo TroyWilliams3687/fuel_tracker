@@ -78,17 +78,14 @@ def report(*args, **kwargs):
 def show(*args, **kwargs):
     """
 
+
     # Usage
 
-    \b
     $ ft report show passat
 
     $ ft report show passat soul --records=25 --hide-partial --hide-comments
 
     $ ft report show passat --records=50 --hide-partial --hide-comments
-
-
-
 
     $ ft report show passat intrepid soul matrix --ods=./output/data.ods --csv=./output/data.csv
 
@@ -152,6 +149,9 @@ def show(*args, **kwargs):
             df = df[::-1]
             df.reset_index(drop=True, inplace=True)
 
+            # Set the correct data types - use the pandas method to infer the object type
+            df = df.infer_objects()
+
             # Fuel Calculations
 
             df['$/l'] = df['cost'] / df['fuel']
@@ -160,11 +160,13 @@ def show(*args, **kwargs):
             df['mpg (imp)'] = (df['mileage']*0.621371) / (df['fuel']*0.219969) # google
             df['days'] = df['fill_date'].diff().dt.days  # .dt.days removes the 'days' portion that would be listed
 
+
             # reorder the columns before we start removing them
             df = df.reindex(
                 columns=[
                     'fuel_id',
                     'fill_date',
+                    'days',
                     'mileage',
                     'fuel',
                     'cost',
@@ -172,7 +174,6 @@ def show(*args, **kwargs):
                     'l/100km',
                     'mpg (us)',
                     'mpg (imp)',
-                    'days',
                     'partial',
                     'comments',
                 ],
@@ -207,10 +208,24 @@ def show(*args, **kwargs):
             maximums = df[sum_columns + average_columns].max(numeric_only=True, axis=0)
             averages = df[sum_columns + average_columns].mean(numeric_only=True, axis=0)
 
-            df.loc['Sum'] = totals
-            df.loc['Min'] = minimums
-            df.loc['Max'] = maximums
-            df.loc['Average'] = averages
+
+            df_totals = pd.concat(
+                [totals, averages, maximums, minimums],
+                keys=['Total', 'Average', 'Max', 'Min'],
+                axis=1,
+            )
+
+            df_totals = df_totals.round(
+                {
+                    'Total':1,
+                    'Average':1,
+                    'Max':1,
+                    'Min':1,
+                },
+            )
+
+            # Remove any residual NaN
+            df_totals.fillna("", inplace=True)
 
             # ----------
             # Round Decimal Places
@@ -231,8 +246,26 @@ def show(*args, **kwargs):
             # Remove any residual NaN
             df.fillna("", inplace=True)
 
-            click.echo(df)
-            click.echo()
+            # Rename the columns
+            df.rename(
+                columns={
+                    "fuel_id": "Fuel ID",
+                    "fill_date": "Date",
+                },
+                inplace=True,
+            )
+
+            for df_p in (df, df_totals):
+                click.echo(
+                    df_p.to_markdown(
+                        index=True,
+                        tablefmt="pretty",
+                    )
+                )
+
+                click.echo()
+
+
 
             # Write to excel/ods/csv
 

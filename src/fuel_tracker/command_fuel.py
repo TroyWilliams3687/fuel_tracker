@@ -113,12 +113,8 @@ def add(*args, **kwargs):
 
     # Usage
 
-
-
-    \b
     $ ft fuel add passat
     $ ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --partial --comment="Some reason"
-
 
     """
 

@@ -89,13 +89,23 @@ def construct_config():
 @click.pass_context
 def main(*args, **kwargs):
     """
-
     Fuel Tracker is a tool to manage fuel receipts and report on them.
+    All fuel records and vehicles are stored in a database.
 
 
-    # Usage
+    Add a new vehicle:
 
-    $ ft
+    $ ft vehicle add passat --make=Volkswagen --model=passat --year=2015 --tank=70 --inital-odo=15
+
+    Add a fuel record to the vehicle:
+
+    $ ft fuel add passat
+
+    Sho
+
+    $ ft report show passat
+
+    $ ft report show passat soul --records=25 --hide-partial --hide-comments
 
     """
 

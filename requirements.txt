@@ -13,6 +13,7 @@ pandas
 odfpy
 openpyxl
 sqlalchemy
+tabulate # Dataframe.to_markdown
 
 # ------------
 # Custom Repo

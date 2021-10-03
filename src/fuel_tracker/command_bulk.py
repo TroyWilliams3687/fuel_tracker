@@ -330,7 +330,12 @@ def export(*args, **kwargs):
     if not kwargs.get('excel', False) and kwargs.get('ods', False):
 
         for page_name, df in output:
-            click.echo(df)
+            click.echo(
+                df.to_markdown(
+                    index=False,
+                    tablefmt="pretty",
+                )
+            )
             click.echo()
 
     click.secho('Completed!', fg='cyan')
