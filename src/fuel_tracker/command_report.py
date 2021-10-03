@@ -45,11 +45,15 @@ def report(*args, **kwargs):
     """
     Generate reports from various parts of the database.
 
-    # Usage
-
-    $ ft report
-
     """
+
+    # We should show the list of cars here if the user only typed `ft
+    # report`. It should show the possible commands like rocscan with
+    # copy/paste commands
+
+    # build a generic method that can return the data frame with the
+    # vehicle names and vehicle ids
+
     pass
 
 
@@ -116,7 +120,7 @@ def show(*args, **kwargs):
 
         for v in selected_vehicles:
 
-            click.echo("-----")
+            click.echo()
             click.echo(v)
             click.echo()
 

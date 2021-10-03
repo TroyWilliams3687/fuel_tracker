@@ -144,7 +144,11 @@ def add(*args, **kwargs):
 
                 click.echo(
                     new_vehicle
-                )  # create a vehicle format function that can handle the units (liters and kilometers)
+                )
+
+                # create a vehicle format function that can handle the
+                # units (liters and kilometers)
+
                 click.echo(f"Fuel Records: {len(new_vehicle.fuel_records)}")
                 click.echo()
 
@@ -153,7 +157,7 @@ def add(*args, **kwargs):
 @click.pass_context
 @click.argument(
     "vehicles",
-    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,
     type=str,
 )
 def delete(*args, **kwargs):
@@ -186,10 +190,12 @@ def delete(*args, **kwargs):
                 # select the vehicle by name
                 statement = select_vehicle_by_name(vid)
 
-            # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
+            # NOTE: select(Vehicle) returns the SQL statement that must
+            # be executed against the engine.
             selected_vehicle = session.execute(statement).first()
 
-            # NOTE: session.execute returns an iterable. Deal with it appropriately
+            # NOTE: session.execute returns an iterable. Deal with it
+            # appropriately
 
             if len(selected_vehicle) == 1:
                 session.delete(selected_vehicle[0])
@@ -214,7 +220,7 @@ def delete(*args, **kwargs):
 @click.pass_context
 @click.argument(
     "vehicles",
-    nargs=-1,  # accept an unlimited number of arguments. This makes it an iterable
+    nargs=-1,
     type=str,
 )
 @click.option(

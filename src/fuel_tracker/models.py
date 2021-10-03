@@ -42,15 +42,17 @@ from sqlalchemy.orm import relationship
 # ------------
 # Custom Modules
 
+import sqlite3
+import numpy as np
+
 # -------------
 # sqlite adapters
 
+# https://stackoverflow.com/questions/57628273/saving-numpy-integers-in-sqlite-database-with-sqlalchemy
+# https://docs.sqlalchemy.org/en/14/orm/cascades.html?highlight=cascade%20save%20update#cascade-save-update
+
 # Register the following adapter so that numpy integers can vb converted
 # to regular integers otherwise they will be blobs
-
-# https://stackoverflow.com/questions/57628273/saving-numpy-integers-in-sqlite-database-with-sqlalchemy
-import sqlite3
-import numpy as np
 
 sqlite3.register_adapter(np.int64, lambda val: int(val))
 
@@ -67,15 +69,17 @@ class Vehicle(Base):
     __tablename__ = "VEHICLE"
 
     vehicle_id = Column(Integer, primary_key=True)
+
     name = Column(String, unique=True)
     make = Column(String)
     model = Column(String)
     year = Column(Integer, default=0)
     tank_capacity = Column(Float, default=0.0)
     initial_odometer = Column(Float, default=0.0)
+
     fuel_records = relationship(
         "FuelRecord",
-        cascade="all, delete, delete-orphan, save-update",  # https://docs.sqlalchemy.org/en/14/orm/cascades.html?highlight=cascade%20save%20update#cascade-save-update
+        cascade="all, delete, delete-orphan, save-update",
         order_by="FuelRecord.fill_date",
         primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id",
         # lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/

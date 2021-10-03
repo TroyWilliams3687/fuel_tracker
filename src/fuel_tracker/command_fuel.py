@@ -36,6 +36,13 @@ from .common import is_int
 
 # -------------
 
+date_format_strings = [
+    "%Y-%m-%d",
+    "%d/%m/%y",
+    "%m/%d/%y",
+    "%d/%m/%Y",
+    "%m/%d/%Y",
+]
 
 @click.group("fuel")
 @click.pass_context
@@ -59,11 +66,13 @@ def fuel(*args, **kwargs):
 )
 @click.option(
     "--date",
-    type=click.DateTime(
-        formats=["%Y-%m-%d", "%d/%m/%y", "%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"]
-    ),
+    type=click.DateTime(formats=date_format_strings),
     prompt=False,
-    help="The date fuel was added to the vehicle. Support 5 major date formats in the following order: Y-m-d, d/m/Y, d/m/y, m/d/Y, m/d/y (first match is taken)",
+    help=(
+        "The date fuel was added to the vehicle. "
+        "Support 5 major date formats in the following order: "
+        "Y-m-d, d/m/Y, d/m/y, m/d/Y, m/d/y (first match is taken)"
+    ),
 )
 @click.option(
     "--fuel",
@@ -87,13 +96,21 @@ def fuel(*args, **kwargs):
     "--partial",
     type=bool,
     prompt=False,
-    help="Was this a partial fill up. Optional - you will not be prompted and have to set the switch.",
+    help=(
+        "Was this a partial fill up. "
+        "Optional - you will not be prompted and have "
+        "to set the switch."
+    ),
 )
 @click.option(
     "--comment",
     type=str,
     prompt=False,
-    help="A comment about this fuel record. Optional - you will not be prompted and have to set the switch.",
+    help=(
+        "A comment about this fuel record. "
+        "Optional - you will not be prompted and "
+        "have to set the switch."
+    ),
 )
 def add(*args, **kwargs):
     """
@@ -130,40 +147,48 @@ def add(*args, **kwargs):
 
         # do we have an integer or a string?
         if is_int(vid):
-            # select the vehicle by id
+
             statement = select_vehicle_by_id(vid)
 
         else:
 
-            # select the vehicle by name
             statement = select_vehicle_by_name(vid)
 
-        # NOTE: select(Vehicle) returns the SQL statement that must be executed against the engine.
+        # NOTE: select(Vehicle) returns the SQL statement that must be
+        # executed against the engine.
+
         selected_vehicle = session.execute(statement).first()
 
         if selected_vehicle is None:
-            click.secho(f"{vid} does not resolve to a vehicle!", fg="red")
-            click.secho("Use the number or the name from one of these:", fg="cyan")
+
+            click.secho(
+                f"{vid} does not resolve to a vehicle!",
+                fg="red",
+            )
+            click.secho(
+                "Use the number or the name from one of these:",
+                fg="cyan",
+            )
 
             for valid_vehicle in session.query(Vehicle).all():
                 click.secho(
-                    f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}", fg="magenta"
+                    f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}",
+                    fg="magenta",
                 )
 
             ctx.exit()
 
         selected_vehicle = selected_vehicle[0]
 
-        # Now that we have a valid vehicle, let's make sure we have valid data.
+        # Now that we have a valid vehicle, let's make sure we have
+        # valid data.
 
         data = {}
 
         data["date"] = (
             click.prompt(
                 "Date",
-                type=click.DateTime(
-                    formats=["%Y-%m-%d", "%d/%m/%y", "%m/%d/%y", "%d/%m/%Y"]
-                ),
+                type=click.DateTime(formats=date_format_strings),
             )
             if kwargs["date"] is None
             else kwargs["date"]
@@ -202,7 +227,8 @@ def add(*args, **kwargs):
             session.flush()
 
             click.echo(
-                f"{len(selected_vehicle.fuel_records)} Fuel Records associated with the vehicle."
+                f"{len(selected_vehicle.fuel_records)} "
+                "Fuel Records associated with the vehicle."
             )
 
 

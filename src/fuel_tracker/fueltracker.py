@@ -53,7 +53,9 @@ def construct_config():
 
     # The location of the settings file
     config["user_config"] = (
-        Path(dirs.user_config_dir).joinpath(__company__).joinpath(__appname__)
+        Path(dirs.user_config_dir)
+        .joinpath(__company__)
+        .joinpath(__appname__)
     )
     config["user_config"].mkdir(parents=True, exist_ok=True)
 
@@ -61,21 +63,37 @@ def construct_config():
 
     # Default settings
     config["settings"] = {
-        "database": "fuel.db",  # name of the database to use
-        "date_format": "%Y-%m-%d",  # How dates are reported and interpreted. Based on strptime behavior: https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-        "fuel_unit": "l",  # The unit (l or us_gal) we'll assume the fuel quantity is entered in and the value we'll report on. It will be stored as liters in the database.
-        "mileage_unit": "km",  # The unit (km or mi) we'll assume for mileage data. It will be stored as kilometers in the database.
+        "database": "fuel.db",
+        "date_format": "%Y-%m-%d",
+        "fuel_unit": "l",
+        "mileage_unit": "km",
     }
+
+    # Default Settings Keys:
+    # - database
+    #    - name of the database to use
+
+    # - data_format
+    #   - How dates are reported and interpreted. Based on strptime
+    #     behavior:
+    #     https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+
+    # - fuel_unit
+    #   - The unit (l or us_gal) we'll assume the fuel quantity is
+    #     entered in and the value we'll report on. It will be stored
+    #     as liters in the database.
+
+    # - mileage_unit
+    #   - The unit (km or mi) we'll assume for mileage data. It will be
+    #     stored as kilometers in the database.
 
     if settings_file.exists():
         config["settings"] |= toml.loads(settings_file.read_text())
 
-    # Construct the path to the database
-    # 1. Does it exist
-
     db_path = Path(config["settings"]["database"])
 
     if db_path.is_absolute():
+
         config["path_db"] = db_path
 
     else:
@@ -120,7 +138,6 @@ def main(*args, **kwargs):
     config["db"] = get_session(config["path_db"])
 
     ctx.obj["config"] = config
-
 
 main.add_command(fuel)
 main.add_command(vehicle)
