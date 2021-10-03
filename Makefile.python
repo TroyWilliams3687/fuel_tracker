@@ -59,7 +59,7 @@
 
 # Load up any requirements files so we can install them into the venv. Multiple
 # paths are supported (space separated)
-REQUIREMENTS_TXT?=$(wildcard requirements.txt)
+REQUIREMENTS_TXT?=$(wildcard *requirements.txt)
 
 # The install_marker indicates that the .venv was created and initialized by the
 # makefile - no need to install things to it again
