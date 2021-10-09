@@ -114,7 +114,8 @@ def show(*args, **kwargs):
                 select(Vehicle).where(Vehicle.vehicle_id.in_(vehicle_ids))
             )
 
-            selected_vehicles.extend(r[0] for r in result.all())
+            # https://docs.sqlalchemy.org/en/14/orm/queryguide.html#selecting-orm-entities-and-attributes
+            selected_vehicles.extend(result.scalars().all())
 
         if vehicle_names:
 
@@ -122,7 +123,7 @@ def show(*args, **kwargs):
                 select(Vehicle).where(Vehicle.name.in_(vehicle_names))
             )
 
-            selected_vehicles.extend(r[0] for r in result.all())
+            selected_vehicles.extend(result.scalars().all())
 
         if len(selected_vehicles) == 0:
             click.secho('No matching vehicles found.', fg='red')

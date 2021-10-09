@@ -173,7 +173,8 @@ def add(*args, **kwargs):
                 fg="cyan",
             )
 
-            for valid_vehicle in (r[0] for r in session.execute(select(Vehicle)).all()):
+
+            for valid_vehicle in session.execute(select(Vehicle)).scalars().all():
                 click.secho(
                     f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}",
                     fg="magenta",
