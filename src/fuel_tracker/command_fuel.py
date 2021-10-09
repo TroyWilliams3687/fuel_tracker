@@ -22,6 +22,8 @@
 
 import click
 
+from sqlalchemy import select
+
 # ------------
 # Custom Modules
 
@@ -171,7 +173,7 @@ def add(*args, **kwargs):
                 fg="cyan",
             )
 
-            for valid_vehicle in session.query(Vehicle).all():
+            for valid_vehicle in (r[0] for r in session.execute(select(Vehicle)).all()):
                 click.secho(
                     f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}",
                     fg="magenta",

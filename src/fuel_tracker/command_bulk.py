@@ -26,7 +26,10 @@ from datetime import date
 
 import click
 import pandas as pd
+
 from pandas import ExcelWriter
+
+from sqlalchemy import delete
 
 # ------------
 # Custom Modules
@@ -176,32 +179,33 @@ def delete(*args, **kwargs):
     with config["db"].begin() as session:
 
         for vid in kwargs["vehicles"]:
+
             click.echo(f"Deleting {vid}...")
 
-            # do we have an integer or a string?
             if is_int(vid):
-                # select the vehicle by id
+
                 statement = select_vehicle_by_id(vid)
 
             else:
 
-                # select the vehicle by name
                 statement = select_vehicle_by_name(vid)
 
-            # NOTE: select(Vehicle) returns the SQL statement that must
-            # be executed against the engine.
             selected_vehicle = session.execute(statement).first()
 
             # NOTE: session.execute returns an iterable. Deal with it
             # appropriately
 
             if len(selected_vehicle) == 1:
-                session.delete(selected_vehicle[0])
+
+                delete_query = delete(Vehicle).where(Vehicle.vehicle_id == vid)
+                session.execute(delete_query)
 
             elif len(selected_vehicle) == 0:
+
                 click.secho(f"No matches for: {vid}", fg="cyan")
 
             else:
+
                 click.secho(
                     f"More than one vehicle returned ({len(selected_vehicle)})! Doing Nothing!",
                     fg="red",
@@ -283,18 +287,18 @@ def export(*args, **kwargs):
 
     output = []
     with config["db"].begin() as session:
+
         for vid in kwargs["vehicles"]:
+
             click.echo(f"Exporting {vid}...")
             click.echo()
 
-            # do we have an integer or a string?
             if is_int(vid):
-                # select the vehicle by id
+
                 statement = select_vehicle_by_id(vid, join=True)
 
             else:
 
-                # select the vehicle by name
                 statement = select_vehicle_by_name(vid, join=True)
 
             page_name = f"{vid}"
@@ -302,10 +306,8 @@ def export(*args, **kwargs):
             df = pd.read_sql(statement, session.connection())
             df = df.drop(["vehicle_id", "vehicle_id_1"], axis=1)
 
-            # click.echo(statement)
-            # click.echo(df)
-
             if kwargs.get("csv", False):
+
                 csv_file = kwargs.get("csv")
                 df.to_csv(csv_file.parent / Path(f"{csv_file.stem}_{page_name}.csv"))
 
