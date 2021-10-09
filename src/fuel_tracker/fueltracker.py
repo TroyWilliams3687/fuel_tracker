@@ -26,6 +26,9 @@ import click
 import toml
 from appdirs import AppDirs
 
+from rich.traceback import install
+install(show_locals=True)
+
 # ------------
 # Custom Modules
 
