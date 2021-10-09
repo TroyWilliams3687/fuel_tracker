@@ -87,8 +87,7 @@ class Vehicle(Base):
         cascade="all, delete, delete-orphan, save-update",
         order_by="FuelRecord.fill_date",
         primaryjoin="Vehicle.vehicle_id == FuelRecord.vehicle_id",
-        # lazy='select', # https://blog.theodo.com/2020/03/sqlalchemy-relationship-performance/
-        # order_by="desc(FuelRecord.fill_date)",
+        backref='Vehicle'
     )
 
     def __str__(self):
@@ -131,12 +130,14 @@ class FuelRecord(Base):
     )
 
     fuel_id = Column(Integer, primary_key=True)
+
     fill_date = Column(Date)
     mileage = Column(Float, default=0.0)
     fuel = Column(Float, default=0.0)
     cost = Column(Float, default=0.0)
     partial = Column(Boolean)
     comment = Column(String)
+
     vehicle_id = Column(Integer, ForeignKey("VEHICLE.vehicle_id", ondelete="CASCADE"))
 
     def __repr__(self):

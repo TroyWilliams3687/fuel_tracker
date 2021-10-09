@@ -24,6 +24,8 @@ import click
 
 import pandas as pd
 
+from sqlalchemy import select
+
 # ------------
 # Custom Modules
 
@@ -107,16 +109,24 @@ def show(*args, **kwargs):
         selected_vehicles = []
 
         if vehicle_ids:
-            selected_vehicles.extend(
-                session.query(Vehicle)
-                .filter(Vehicle.id.in_(vehicle_ids))
-                .all()  # all returns objects
+
+            result = session.execute(
+                select(Vehicle).where(Vehicle.vehicle_id.in_(vehicle_ids))
             )
 
+            selected_vehicles.extend(r[0] for r in result.all())
+
         if vehicle_names:
-            selected_vehicles.extend(
-                session.query(Vehicle).filter(Vehicle.name.in_(vehicle_names)).all()
+
+            result = session.execute(
+                select(Vehicle).where(Vehicle.name.in_(vehicle_names))
             )
+
+            selected_vehicles.extend(r[0] for r in result.all())
+
+        if len(selected_vehicles) == 0:
+            click.secho('No matching vehicles found.', fg='red')
+            ctx.exit()
 
         for v in selected_vehicles:
 
@@ -128,14 +138,12 @@ def show(*args, **kwargs):
             # sets it doesn't matter
             # click.echo(len(v.fuel_records[-10:]))
 
-            # This one will load the subset that we are interested in
             statement = (
-                session.query(FuelRecord)
-                .filter(FuelRecord.vehicle_id == v.vehicle_id)
-                .order_by(FuelRecord.fill_date.desc())
-                .limit(kwargs["records"])
-                .statement
-                # .all() # return objects
+                select(FuelRecord)
+                    .join(Vehicle)
+                    .where(FuelRecord.vehicle_id == v.vehicle_id)
+                    .order_by(FuelRecord.fill_date.desc())
+                    .limit(kwargs["records"])
             )
 
             df = pd.read_sql(statement, session.connection())
