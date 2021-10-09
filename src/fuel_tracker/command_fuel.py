@@ -44,6 +44,7 @@ date_format_strings = [
     "%m/%d/%Y",
 ]
 
+
 @click.group("fuel")
 @click.pass_context
 def fuel(*args, **kwargs):

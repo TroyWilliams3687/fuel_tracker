@@ -22,6 +22,8 @@ Reference:
 # ------------
 # System Modules - Included with Python
 
+from typing import Optional
+
 # ------------
 # 3rd Party - From PyPI
 
@@ -32,11 +34,14 @@ from sqlalchemy import Column, ForeignKey, CheckConstraint
 from sqlalchemy import Integer, Float, String, Boolean, Date
 from sqlalchemy import select
 
+from sqlalchemy.sql.expression import Select # For type hinting
+
 # from sqlalchemy import Table
 from sqlalchemy import create_engine
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
+
 
 
 # ------------
@@ -167,7 +172,7 @@ def get_session(path):
     return sessionmaker(engine, future=True)
 
 
-def select_vehicle_by_id(vid, **kwargs):
+def select_vehicle_by_id(vid: int, join: Optional[bool] = False) -> Select:
     """
     Given the vehicle id, return the SQL select statement that
     will correctly select the vehicle from the database.
@@ -176,7 +181,7 @@ def select_vehicle_by_id(vid, **kwargs):
     to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    if kwargs.get("join", False):
+    if join:
 
         return (
             select(Vehicle, FuelRecord)
@@ -189,7 +194,7 @@ def select_vehicle_by_id(vid, **kwargs):
         return select(Vehicle).where(Vehicle.vehicle_id == vid)
 
 
-def select_vehicle_by_name(name, **kwargs):
+def select_vehicle_by_name(name: str, join: Optional[bool] = False) -> Select:
     """
     Given the vehicle name, return the SQL select statement that
     will correctly select the vehicle from the database.
@@ -198,7 +203,7 @@ def select_vehicle_by_name(name, **kwargs):
     to join the Vehicle and FuelRecord tables and return the results.
     """
 
-    if kwargs.get("join", False):
+    if join:
 
         return (
             select(Vehicle, FuelRecord)

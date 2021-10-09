@@ -142,9 +142,7 @@ def add(*args, **kwargs):
                 session.add(new_vehicle)
                 session.flush()  # get the new id
 
-                click.echo(
-                    new_vehicle
-                )
+                click.echo(new_vehicle)
 
                 # create a vehicle format function that can handle the
                 # units (liters and kilometers)

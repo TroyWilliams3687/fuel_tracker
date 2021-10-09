@@ -27,7 +27,7 @@
 # -------------
 
 # https://stackoverflow.com/a/9859202
-def is_int(s):
+def is_int(s: str) -> bool:
     """
     A method to determine if the string is indeed an integer.
 
@@ -43,15 +43,15 @@ def is_int(s):
         return False
 
 
-def integer_or_string(items):
+def integer_or_string(items: list[str]) -> tuple[list[str], list[str]]:
     """
     given a list of strings return two lists, the first list will be the
     strings that can be converted to integers. The second list will be
     the list of strings that cannot be converted to a string.
     """
 
-    string_items = []
     number_items = []
+    string_items = []
 
     for item in items:
 

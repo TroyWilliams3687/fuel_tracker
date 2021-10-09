@@ -27,6 +27,7 @@ import toml
 from appdirs import AppDirs
 
 from rich.traceback import install
+
 install(show_locals=True)
 
 # ------------
@@ -44,10 +45,9 @@ __appname__ = "fuel_tracker"
 __company__ = "bluebill.net"
 
 
-def construct_config():
+def construct_config() -> dict:
     """
     Retrieve the user configuration.
-
     """
 
     dirs = AppDirs()
@@ -56,9 +56,7 @@ def construct_config():
 
     # The location of the settings file
     config["user_config"] = (
-        Path(dirs.user_config_dir)
-        .joinpath(__company__)
-        .joinpath(__appname__)
+        Path(dirs.user_config_dir).joinpath(__company__).joinpath(__appname__)
     )
     config["user_config"].mkdir(parents=True, exist_ok=True)
 
@@ -141,6 +139,7 @@ def main(*args, **kwargs):
     config["db"] = get_session(config["path_db"])
 
     ctx.obj["config"] = config
+
 
 main.add_command(fuel)
 main.add_command(vehicle)
