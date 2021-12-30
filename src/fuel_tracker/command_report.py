@@ -24,6 +24,7 @@ import click
 
 import pandas as pd
 
+from rich.console import Console
 from sqlalchemy import select
 
 # ------------
@@ -39,6 +40,8 @@ from .models import (
 from .common import integer_or_string
 
 # -------------
+
+console = Console()
 
 
 @click.group("report")
@@ -57,6 +60,35 @@ def report(*args, **kwargs):
     # vehicle names and vehicle ids
 
     pass
+
+def report_show_usage(db):
+    """
+    """
+
+    console.print()
+    console.print('No Arguments :frowning:.')
+    console.print('The command can be run with [white]vehicle names[/white]:', style='cyan')
+    console.print()
+
+    show_command = '$ ft report show'
+
+    with db.begin() as session:
+
+        result = session.execute(select(Vehicle))
+
+        vehicles = [(v.vehicle_id, v.name) for v in result.scalars().all()]
+
+        for _, name in vehicles:
+            console.print(f'[red]{show_command}[/red] [white]{name}[/white]')
+
+        console.print()
+        console.print('Or with vehicle [white]IDs[/white]:', style='cyan')
+        console.print()
+
+        for vid, _ in vehicles:
+            console.print(f'[red]{show_command}[/red] [white]{vid}[/white]')
+
+        console.print()
 
 
 @report.command("show")
@@ -88,7 +120,12 @@ def show(*args, **kwargs):
 
     # Usage
 
+    Display details for the vehicle by name:
+
     $ ft report show passat
+
+    Or by id
+    $ ft report show 4
 
     $ ft report show passat soul --records=25 --hide-partial --hide-comments
 
@@ -103,6 +140,14 @@ def show(*args, **kwargs):
 
     # figure out which vehicles are id and which are names...
     vehicle_ids, vehicle_names = integer_or_string(kwargs["vehicles"])
+
+
+    if len(vehicle_ids) == 0 and len(vehicle_names) == 0:
+
+        report_show_usage(config["db"])
+
+        ctx.exit()
+
 
     with config["db"].begin() as session:
 
@@ -126,18 +171,20 @@ def show(*args, **kwargs):
             selected_vehicles.extend(result.scalars().all())
 
         if len(selected_vehicles) == 0:
-            click.secho('No matching vehicles found.', fg='red')
+            console.print('No matching vehicles found.', style='red')
             ctx.exit()
+
+
 
         for v in selected_vehicles:
 
-            click.echo()
-            click.echo(v)
-            click.echo()
+            console.print()
+            console.print(v)
+            console.print()
 
             # This call will load all of the records - for small data
             # sets it doesn't matter
-            # click.echo(len(v.fuel_records[-10:]))
+            # console.print(len(v.fuel_records[-10:]))
 
             statement = (
                 select(FuelRecord)
@@ -270,14 +317,14 @@ def show(*args, **kwargs):
             )
 
             for df_p in (df, df_totals):
-                click.echo(
+                console.print(
                     df_p.to_markdown(
                         index=True,
                         tablefmt="pretty",
                     )
                 )
 
-                click.echo()
+                console.print()
 
             # Write to excel/ods/csv
 
