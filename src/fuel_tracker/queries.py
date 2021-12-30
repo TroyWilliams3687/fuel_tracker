@@ -90,26 +90,23 @@ def vehicle_report(vid, tail=-1):
     # --------------
 
 
-    # statement = (
-    #             select(FuelRecord)
-    #                 .join(Vehicle)
-    #                 .where(FuelRecord.vehicle_id == v.vehicle_id)
-    #                 .order_by(FuelRecord.fill_date.desc())
-    #                 .limit(kwargs["records"])
-    #         )
-
     # https://stackoverflow.com/questions/60515826/sqlalchemy-difference-between-two-dates
 
-    # NOTE: func.julianday is SQLite specific and won't work with other databases.
+    # NOTE: func.julianday is SQLite specific and won't work with other
+    # databases.
+
+    # NOTE: if we remove the julianday, then it cannot use the lag
+    # function and get the days for the previous fill up, leaving null.
+    # This way we can see the n - 1 count, i.e. the number of days
+    # since the last fill-up not in the tail.
 
     statement = (
         select(
-            Vehicle.vehicle_id,
-            Vehicle.name,
+            # Vehicle.vehicle_id,
+            # Vehicle.name,
             FuelRecord.fuel_id,
             FuelRecord.fill_date,
-            # func.lag(FuelRecord.fill_date, 1).over(order_by=FuelRecord.fill_date).label('previous'),
-            cast(func.julianday(FuelRecord.fill_date) - func.lag(func.julianday(FuelRecord.fill_date), 1).over(order_by=FuelRecord.fill_date), Integer).label('days'),
+            cast(func.julianday(FuelRecord.fill_date) - func.lag(func.julianday(FuelRecord.fill_date), 1, func.julianday(FuelRecord.fill_date)).over(order_by=FuelRecord.fill_date), Integer).label('days'),
             FuelRecord.mileage,
             FuelRecord.fuel,
             FuelRecord.cost,
@@ -117,12 +114,11 @@ def vehicle_report(vid, tail=-1):
             func.round(100*FuelRecord.fuel/FuelRecord.mileage, 3).label('l_per_100km'),
             func.round((FuelRecord.mileage*0.621371)/(FuelRecord.fuel*0.264172), 3).label('mpg_us'),
             func.round((FuelRecord.mileage*0.621371)/(FuelRecord.fuel*0.219969), 3).label('mpg_imp'),
-
         )
         .select_from(Vehicle)
         .join(FuelRecord)
         .filter(Vehicle.vehicle_id == vid)
-        .order_by(FuelRecord.fill_date.asc())
+        .order_by(FuelRecord.fill_date.desc())
         .limit(tail)
     )
 

@@ -205,85 +205,25 @@ def show(*args, **kwargs):
             # console.print(statement)
 
             df = pd.read_sql(statement, session.connection())
-            console.print(
-                    df.to_markdown(
-                        index=True,
-                        tablefmt="pretty",
-                    )
-                )
 
-
-            # Get Tail working correctly
-            # Figure out how to do the date diff without the julianday
-            # Figure out how to get the `days` column coming in as an int - the nan makes it a float
-
-
-            console.print()
-            console.print(df.dtypes)
-
-            ctx.exit()
-            # --------------------
-
-            statement = (
-                select(FuelRecord)
-                    .join(Vehicle)
-                    .where(FuelRecord.vehicle_id == v.vehicle_id)
-                    .order_by(FuelRecord.fill_date.desc())
-                    .limit(kwargs["tail"])
-            )
-
-            df = pd.read_sql(statement, session.connection())
-            df = df.drop(["vehicle_id"], axis=1)
-            df["partial"].replace(False, "", inplace=True)
-
-            # the dataframe is generated with a statement that sorts the
-            # data by fill date in descending order. This means the
-            # most recent date will be at the top - I want it at the
-            # bottom. We can reverse the dataframe rows to accomplish the ordering I want.
+            # reverse the rows as the query will bring them in with the
+            # last date as the first entry, I want to see it as the
+            # first entry. Not really an elegant way to do it with pure SQL
 
             df = df[::-1]
-            df.reset_index(drop=True, inplace=True)
+            df.reset_index(inplace=True, drop=True)
 
-            # Set the correct data types - use the pandas method to infer the object type
-            df = df.infer_objects()
-
-            # Fuel Calculations
-
-            df["$/l"] = df["cost"] / df["fuel"]
-            df["l/100km"] = 100 * df["fuel"] / df["mileage"]
-            df["mpg (us)"] = (df["mileage"] * 0.621371) / (
-                df["fuel"] * 0.264172
-            )  # google
-            df["mpg (imp)"] = (df["mileage"] * 0.621371) / (
-                df["fuel"] * 0.219969
-            )  # google
-            df["days"] = (
-                df["fill_date"].diff().dt.days
-            )  # .dt.days removes the 'days' portion that would be listed
-
-            # reorder the columns before we start removing them
-            df = df.reindex(
-                columns=[
-                    "fuel_id",
-                    "fill_date",
-                    "days",
-                    "mileage",
-                    "fuel",
-                    "cost",
-                    "$/l",
-                    "l/100km",
-                    "mpg (us)",
-                    "mpg (imp)",
-                    "partial",
-                    "comments",
-                ],
+            # rename the columsn
+            df = df.rename(
+                columns={
+                    'fuel_id':'fuel (id)',
+                    'fill_date':'fill date',
+                    'cost_per_liter':'$/l',
+                    'l_per_100km':'l/100km',
+                    'mpg_us':'mpg (us)',
+                    'mpg_imp':'mpg (imp)',
+                }
             )
-
-            if kwargs["hide_partial"]:
-                df = df.drop(["partial"], axis=1)
-
-            if kwargs["hide_comments"]:
-                df = df.drop(["comments"], axis=1)
 
             # -------
             # Summary Rows
