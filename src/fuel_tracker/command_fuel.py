@@ -51,12 +51,7 @@ date_format_strings = [
 @click.pass_context
 def fuel(*args, **kwargs):
     """
-    Work with fuel records. You can add, edit and delete records.
-
-    # Usage
-
-    $ ft fuel
-
+    Manage vehicle fuel records.
     """
     pass
 
@@ -117,28 +112,38 @@ def fuel(*args, **kwargs):
 )
 def add(*args, **kwargs):
     """
-    Add new fuel records to the database. You must specify the vehicle
-    to attach the fuel record to by database id or by name. You can
-    optionally specify the switches or be prompted for the minimum
-    data.
+    Add a new fuel record to the database. You can add a fuel record by
+    vehicle name:
 
-    Input date formats can be of the form:
+    $ ft fuel add passat
 
-    - `%Y-%m-%d` - year-month-day  2021-08-12
-    - `%d/%m/%y` - day/month/year  12/08/21
-    - `%m/%d/%y` - month/day/year  08/12/21
-    - `%d/%m/%Y` - day/month/year  12/08/2021
-    - `%m/%d/%Y` - month/day/year  08/12/2021
+    or by vehicle id:
 
+    $ ft fuel add 4
+
+    If you do not specify the switches, you will be prompted for the
+    information automatically.
+
+    \b
+    NOTE: The date format can be one of the following:
+
+    1. `%Y-%m-%d` - year-month-day  2021-08-12
+
+    2. `%d/%m/%y` - day/month/year  12/08/21
+
+    3. `%m/%d/%y` - month/day/year  08/12/21
+
+    4. `%d/%m/%Y` - day/month/year  12/08/2021
+
+    5. `%m/%d/%Y` - month/day/year  08/12/2021
+
+    NOTE: The first format to produce a correct date is used. The date
+    is matched against the list in the order specified above. For
+    example, `02/03/2021` can match 2 or 3 but will match 2 first.
+    Beware. It is best to use the ISO 8601 representation.
 
     NOTE: If you use any of the date formats that have a `/`in them you
     will have to use quote marks when using them directly in switches.
-
-    # Usage
-
-    $ ft fuel add passat
-    $ ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --partial --comment="Some reason"
-
     """
 
     ctx = args[0]

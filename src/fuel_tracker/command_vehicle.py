@@ -36,13 +36,7 @@ from .models import Vehicle
 @click.pass_context
 def vehicle(*args, **kwargs):
     """
-    Work with vehicles.
-
-    # Usage
-
-    \b
-    $ ft vehicle add passat --make=Volkswagen --model=passat --year=2015 --tank=70 --inital-odo=15
-
+    Manage the vehicles in the database.
     """
     pass
 
@@ -56,28 +50,35 @@ def vehicle(*args, **kwargs):
     help=(
         "A name that can be used to identify the vehicle. "
         "This can be the model of the vehicle or something more "
-        "memorable or easier to type."
+        "memorable or easier to type. It should be unique."
     ),
 )
 @click.option(
     "--make",
     type=str,
     prompt=True,
-    help=("The make of the vehicle. " "For a car this could be VW, Ford or Toyota."),
+    help=(
+    "The make of the vehicle. "
+    "For a car this could be VW, Ford or Toyota."
+    ),
 )
 @click.option(
     "--model",
     type=str,
     prompt=True,
     help=(
-        "This is the type of vehicle. " "For a car it could be Passat, F-150 or Hilux"
+        "This is the type of vehicle. "
+        "For a car it could be Passat, F-150 or Hilux"
     ),
 )
 @click.option(
     "--year",
     type=click.DateTime(formats=["%Y"]),
     prompt=True,
-    help=("The year of the vehicle. " "It should be 4 digits - 2021 for example."),
+    help=(
+        "The year of the vehicle. "
+        "It should be 4 digits - 2021 for example."
+    ),
 )
 @click.option(
     "--tank",
@@ -91,17 +92,15 @@ def vehicle(*args, **kwargs):
     "initial_odometer",
     type=str,
     prompt=True,
-    help=("The initial odometer reading in either kilometers " "(default) or miles."),
+    help=(
+        "The initial odometer reading in either kilometers (default) "
+        "or miles."
+    ),
 )
 def add(*args, **kwargs):
     """
-    Add new Vehicles to the database.
-
-    # Usage
-
-    \b
-    $ ft vehicle add --name=passat --make=VW --model=Passat --year=2015 --tank=70 --initial-odo=0
-
+    Add a new vehicle to the database. You will be prompted for missing
+    information.
     """
 
     ctx = args[0]

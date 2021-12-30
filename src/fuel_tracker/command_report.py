@@ -49,20 +49,15 @@ console = Console()
 def report(*args, **kwargs):
     """
     Generate reports from various parts of the database.
-
     """
-
-    # We should show the list of cars here if the user only typed `ft
-    # report`. It should show the possible commands like rocscan with
-    # copy/paste commands
-
-    # build a generic method that can return the data frame with the
-    # vehicle names and vehicle ids
 
     pass
 
 def report_show_usage(db):
     """
+    Display how to use `$ ft report show` with examples from the
+    database. The user should be able to copy/paste one of the commands
+    directly.
     """
 
     console.print()
@@ -99,39 +94,47 @@ def report_show_usage(db):
     type=str,
 )
 @click.option(
-    "--records",
+    "--tail",
     type=int,
     default=10,
-    help="The number of fuel records to display. Defaults to 10. Use -1 to select all records.",
+    help="Display the last `n` records. Defaults to 10. Use -1 to select all records.",
 )
 @click.option(
     "--hide-partial",
     is_flag=True,
-    help="Display the partial column.",
+    help="Hide the partial column.",
 )
 @click.option(
     "--hide-comments",
     is_flag=True,
-    help="Display the comments column.",
+    help="Hide the comments column.",
 )
 def show(*args, **kwargs):
     """
-    Display fuel information about the vehicles.
+    Display fuel information about the vehicles in a tabular format.
 
-    # Usage
-
-    Display details for the vehicle by name:
+    You can specify the vehicles by ID or name (in the database):
 
     $ ft report show passat
 
-    Or by id
-    $ ft report show 4
+    You can name as many vehicles or IDs as you like, simply use a space
+    to separate them:
 
-    $ ft report show passat soul --records=25 --hide-partial --hide-comments
+    $ ft report show passat 3 intrepid
+
+    By default, it will display the last 10 records in the database to
+    change that use the `--tail` command:
+
+    $ ft report show passat --tail=50
+
+    To display all the records use `-1`:
+
+    $ ft report show passat --tail=-1
+
+    To hide the partial and/or the comments columns use `--hide-partial`
+    and/or `--hide-commments`:
 
     $ ft report show passat --records=50 --hide-partial --hide-comments
-
-    $ ft report show passat intrepid soul matrix --ods=./output/data.ods --csv=./output/data.csv
 
     """
 
@@ -142,6 +145,7 @@ def show(*args, **kwargs):
     vehicle_ids, vehicle_names = integer_or_string(kwargs["vehicles"])
 
 
+    # do we have any arguments?
     if len(vehicle_ids) == 0 and len(vehicle_names) == 0:
 
         report_show_usage(config["db"])
