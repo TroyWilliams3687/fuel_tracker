@@ -136,6 +136,12 @@ def show(*args, **kwargs):
 
     $ ft report show passat --records=50 --hide-partial --hide-comments
 
+    If you don't remember the name or id of the vehicle, execute:
+
+    $ ft report show
+
+    And it will display a list of valid options.
+
     """
 
     ctx = args[0]

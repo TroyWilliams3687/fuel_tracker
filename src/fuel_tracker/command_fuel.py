@@ -23,6 +23,7 @@
 import click
 
 from sqlalchemy import select
+from rich.console import Console
 
 # ------------
 # Custom Modules
@@ -37,6 +38,8 @@ from .models import (
 from .common import is_int
 
 # -------------
+
+console = Console()
 
 date_format_strings = [
     "%Y-%m-%d",
@@ -56,11 +59,58 @@ def fuel(*args, **kwargs):
     pass
 
 
+def fuel_add_usage(vid, session):
+    """
+    Display how to use `$ ft fuel add` with examples from the
+    database. The user should be able to copy/paste one of the commands
+    directly.
+
+    If vid is not None, we'll assume it is invalid.
+    """
+
+    console.print()
+
+    if vid is None:
+
+        console.print('No Arguments :frowning:!')
+
+    else:
+
+        console.print(
+            f"{vid} does not resolve to a vehicle!",
+            style="red",
+        )
+
+
+    console.print()
+    console.print('The command can be run with [white]vehicle names[/white]:', style='cyan')
+    console.print()
+
+    show_command = '$ ft fuel add'
+
+    result = session.execute(select(Vehicle))
+
+    vehicles = [(v.vehicle_id, v.name) for v in result.scalars().all()]
+
+    for _, name in vehicles:
+        console.print(f'[red]{show_command}[/red] [white]{name}[/white]')
+
+    console.print()
+    console.print('Or with vehicle [white]IDs[/white]:', style='cyan')
+    console.print()
+
+    for vid, _ in vehicles:
+        console.print(f'[red]{show_command}[/red] [white]{vid}[/white]')
+
+    console.print()
+
+
 @fuel.command("add")
 @click.pass_context
 @click.argument(
     "vehicle",
     type=str,
+    required=False,
 )
 @click.option(
     "--date",
@@ -124,6 +174,12 @@ def add(*args, **kwargs):
     If you do not specify the switches, you will be prompted for the
     information automatically.
 
+    If you don't remember the name or id of the vehicle, execute:
+
+    $ ft fuel add
+
+    And it will display a list of valid options.
+
     \b
     NOTE: The date format can be one of the following:
 
@@ -151,6 +207,13 @@ def add(*args, **kwargs):
 
     vid = kwargs["vehicle"]
 
+    if vid is None:
+
+        with config["db"].begin() as session:
+            fuel_add_usage(vid, session)
+
+        ctx.exit()
+
     with config["db"].begin() as session:
 
         # do we have an integer or a string?
@@ -169,21 +232,7 @@ def add(*args, **kwargs):
 
         if selected_vehicle is None:
 
-            click.secho(
-                f"{vid} does not resolve to a vehicle!",
-                fg="red",
-            )
-            click.secho(
-                "Use the number or the name from one of these:",
-                fg="cyan",
-            )
-
-
-            for valid_vehicle in session.execute(select(Vehicle)).scalars().all():
-                click.secho(
-                    f"{valid_vehicle.vehicle_id} - {valid_vehicle.name}",
-                    fg="magenta",
-                )
+            fuel_add_usage(vid, session)
 
             ctx.exit()
 
@@ -221,21 +270,21 @@ def add(*args, **kwargs):
 
         # plot the records and ask for confirmation to proceed:
 
-        click.echo()
-        click.echo(f"{selected_vehicle.vehicle_id} - {selected_vehicle.name}")
-        click.echo(f'Date    = {data["fill_date"]}')
-        click.echo(f'Fuel    = {data["fuel"]}')
-        click.echo(f'Mileage = {data["mileage"]}')
-        click.echo(f'Cost    = {data["cost"]}')
-        click.echo(f'Partial = {data["partial"]}')
-        click.echo(f'Comment = {data["comment"]}')
+        console.print()
+        console.print(f"{selected_vehicle.vehicle_id} - {selected_vehicle.name}")
+        console.print(f'Date    = {data["fill_date"]}')
+        console.print(f'Fuel    = {data["fuel"]}')
+        console.print(f'Mileage = {data["mileage"]}')
+        console.print(f'Cost    = {data["cost"]}')
+        console.print(f'Partial = {data["partial"]}')
+        console.print(f'Comment = {data["comment"]}')
 
         if click.confirm("Is the Fuel Record Correct?", abort=True, default=True):
 
             selected_vehicle.fuel_records.append(FuelRecord(**data))
             session.flush()
 
-            click.echo(
+            console.print(
                 f"{len(selected_vehicle.fuel_records)} "
                 "Fuel Records associated with the vehicle."
             )
