@@ -37,6 +37,8 @@ from .models import (
     select_vehicle_by_name,
 )
 
+from .queries import vehicle_report
+
 from .common import integer_or_string
 
 # -------------
@@ -184,8 +186,6 @@ def show(*args, **kwargs):
             console.print('No matching vehicles found.', style='red')
             ctx.exit()
 
-
-
         for v in selected_vehicles:
 
             console.print()
@@ -196,12 +196,40 @@ def show(*args, **kwargs):
             # sets it doesn't matter
             # console.print(len(v.fuel_records[-10:]))
 
+
+            # --------------------
+            # Basically, we want to minimize the amount of fiddling we do with the dataframe
+
+            statement = vehicle_report(v.vehicle_id, kwargs["tail"])
+
+            # console.print(statement)
+
+            df = pd.read_sql(statement, session.connection())
+            console.print(
+                    df.to_markdown(
+                        index=True,
+                        tablefmt="pretty",
+                    )
+                )
+
+
+            # Get Tail working correctly
+            # Figure out how to do the date diff without the julianday
+            # Figure out how to get the `days` column coming in as an int - the nan makes it a float
+
+
+            console.print()
+            console.print(df.dtypes)
+
+            ctx.exit()
+            # --------------------
+
             statement = (
                 select(FuelRecord)
                     .join(Vehicle)
                     .where(FuelRecord.vehicle_id == v.vehicle_id)
                     .order_by(FuelRecord.fill_date.desc())
-                    .limit(kwargs["records"])
+                    .limit(kwargs["tail"])
             )
 
             df = pd.read_sql(statement, session.connection())
