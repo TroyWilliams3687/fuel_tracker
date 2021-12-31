@@ -37,7 +37,7 @@ from .models import (
     select_vehicle_by_name,
 )
 
-from .queries import vehicle_report
+from .queries import vehicle_report, vehicle_report_summary
 
 from .common import integer_or_string
 
@@ -198,12 +198,9 @@ def show(*args, **kwargs):
 
 
             # --------------------
-            # Basically, we want to minimize the amount of fiddling we do with the dataframe
+            # Load the vehicle report
 
             statement = vehicle_report(v.vehicle_id, kwargs["tail"])
-
-            # console.print(statement)
-
             df = pd.read_sql(statement, session.connection())
 
             # reverse the rows as the query will bring them in with the
@@ -213,8 +210,39 @@ def show(*args, **kwargs):
             df = df[::-1]
             df.reset_index(inplace=True, drop=True)
 
+            # Load the vehicle summary report
+
+            summary_statement = vehicle_report_summary(v.vehicle_id)
+            df_totals = pd.read_sql(summary_statement, session.connection())
+
+            # ----------------
+            # rename the columns to something more friendly
+
+            df_totals.rename(
+                columns={
+                    'fill_ups':'Fill-Ups',
+                    'total_mileage':'Mileage (Total)',
+                    'total_fuel':'Fuel (Total)',
+                    'total_cost':'Cost (Total)',
+                    'min_mileage':'Mileage (Min)',
+                    'max_mileage':'Mileage (Max)',
+                    'avg_mileage':'Mileage (Avg)',
+                    'min_fuel':'Fuel (Min)',
+                    'max_fuel':'Fuel (Max)',
+                    'avg_fuel':'Fuel (Avg)',
+                    'min_cost':'Cost (Min)',
+                    'max_cost':'Cost (Max)',
+                    'avg_cost':'Cost (Avg)',
+                    'avg_cost_per_liter':'$/l (Avg)',
+                    'avg_l_per_100km':'l/100km (Avg)',
+                    'mpg_us':'mpg (us) (Avg)',
+                    'mpg_imp':'mpg (imp) (Avg)',
+                },
+                inplace=True,
+            )
+
             # rename the columsn
-            df = df.rename(
+            df.rename(
                 columns={
                     'fuel_id':'fuel (id)',
                     'fill_date':'fill date',
@@ -222,87 +250,28 @@ def show(*args, **kwargs):
                     'l_per_100km':'l/100km',
                     'mpg_us':'mpg (us)',
                     'mpg_imp':'mpg (imp)',
-                }
-            )
-
-            # -------
-            # Summary Rows
-
-            sum_columns = [
-                "mileage",
-                "fuel",
-                "cost",
-                "days",
-            ]
-
-            average_columns = [
-                "$/l",
-                "l/100km",
-                "mpg (us)",
-                "mpg (imp)",
-            ]
-
-            # calculate the summary stats on the dataframe before adding the rows.
-            totals = df[sum_columns].sum(numeric_only=True, axis=0)
-            minimums = df[sum_columns + average_columns].min(numeric_only=True, axis=0)
-            maximums = df[sum_columns + average_columns].max(numeric_only=True, axis=0)
-            averages = df[sum_columns + average_columns].mean(numeric_only=True, axis=0)
-
-            df_totals = pd.concat(
-                [totals, averages, maximums, minimums],
-                keys=["Total", "Average", "Max", "Min"],
-                axis=1,
-            )
-
-            df_totals = df_totals.round(
-                {
-                    "Total": 1,
-                    "Average": 1,
-                    "Max": 1,
-                    "Min": 1,
-                },
-            )
-
-            # Remove any residual NaN
-            df_totals.fillna("", inplace=True)
-
-            # ----------
-            # Round Decimal Places
-
-            df = df.round(
-                {
-                    "mileage": 1,
-                    "fuel": 3,
-                    "cost": 2,
-                    "$/l": 3,
-                    "l/100km": 3,
-                    "mpg (us)": 3,
-                    "mpg (imp)": 3,
-                    "days": 1,
-                },
-            )
-
-            # Remove any residual NaN
-            df.fillna("", inplace=True)
-
-            # Rename the columns
-            df.rename(
-                columns={
-                    "fuel_id": "Fuel ID",
-                    "fill_date": "Date",
                 },
                 inplace=True,
             )
 
-            for df_p in (df, df_totals):
-                console.print(
-                    df_p.to_markdown(
-                        index=True,
-                        tablefmt="pretty",
-                    )
-                )
+            # ----------------
 
-                console.print()
+            console.print(
+                df.to_markdown(
+                    index=True,
+                    tablefmt="pretty",
+                )
+            )
+
+            console.print()
+            console.print('Summary by Year:')
+
+            console.print(
+                df_totals.to_markdown(
+                    index=True,
+                    tablefmt="pretty",
+                )
+            )
 
             # Write to excel/ods/csv
 

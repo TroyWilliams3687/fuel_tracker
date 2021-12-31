@@ -12,6 +12,8 @@
 # -----------
 
 """
+Contains SQLite specific queries. Modifications would need to be made to handle other databases.
+
 """
 
 # ------------
@@ -125,6 +127,92 @@ def vehicle_report(vid, tail=-1):
     return statement
 
 
+def vehicle_report_summary(vid):
+    """
+    """
+
+    # /*
+    # This script is specific for SQLite. Mostly around the strftime function.
+    # */
+
+    # SELECT
+
+    #     v.vehicle_id,
+    #     strftime('%Y', f.fill_date) as year,
+    #     COUNT(f.fill_date) as fill_ups,
+    #     SUM(f.mileage) as total_mileage, -- in kilometers
+    #     SUM(f.fuel) as total_fuel,    -- in liters
+    #     SUM(f.cost) as total_cost,    -- in dollars - could be USD or CAD or really any amount as long as they are all the same units
+
+    #     MIN(f.mileage) as min_mileage,
+    #     MAX(f.mileage) as max_mileage,
+    #     ROUND(AVG(f.mileage), 1) as avg_mileage,
+
+    #     MIN(f.fuel) as min_fuel,
+    #     MAX(f.fuel) as max_fuel,
+    #     ROUND(AVG(f.fuel),3) as avg_fuel,
+
+
+    #     MIN(f.cost) AS min_cost,
+    #     MAX(f.cost) AS max_cost,
+    #     ROUND(AVG(f.cost),3) AS avg_cost,
+
+    #     -- Calculate overall cost per liter - also avg cost over the year
+    #     ROUND(SUM(f.cost)/SUM(f.fuel), 3) AS cost_per_liter,
+
+    #     -- Calculate overall l/100km
+    #     ROUND(100*SUM(f.fuel)/SUM(f.mileage), 3) AS l_per_100km,
+
+    #     -- Calculate mpg using both the US and Imperial gallons - numbers from
+    #     -- google
+    #     ROUND((SUM(f.mileage)*0.621371) / (SUM(f.fuel)* 0.264172),3) AS mpg_us,
+    #     ROUND((SUM(f.mileage)*0.621371) / (SUM(f.fuel)* 0.219969),3) AS mpg_imp
+
+    # FROM VEHICLE AS v
+    # INNER JOIN FUEL AS f ON f.vehicle_id = v.vehicle_id
+    # WHERE v.vehicle_id = 4
+    # GROUP BY strftime('%Y', f.fill_date)
+    # ORDER By f.fill_date DESC
+
+    statement = (
+        select(
+            # Vehicle.vehicle_id,
+            # Vehicle.name,
+            func.strftime('%Y', FuelRecord.fill_date).label('year'),
+            func.count(FuelRecord.fill_date).label('fill_ups'),
+
+            func.round(func.sum(FuelRecord.mileage), 1).label('total_mileage'),
+            func.round(func.sum(FuelRecord.fuel), 3).label('total_fuel'),
+            func.round(func.sum(FuelRecord.cost), 2).label('total_cost'),
+
+            func.round(func.sum(FuelRecord.cost)/func.sum(FuelRecord.fuel), 3).label('avg_cost_per_liter'),
+            func.round(100*func.sum(FuelRecord.fuel)/func.sum(FuelRecord.mileage), 3).label('avg_l_per_100km'),
+            func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.264172), 3).label('mpg_us'),
+            func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.219969), 3).label('mpg_imp'),
+
+            func.round(func.min(FuelRecord.mileage), 1).label('min_mileage'),
+            func.round(func.max(FuelRecord.mileage), 1).label('max_mileage'),
+            func.round(func.avg(FuelRecord.mileage), 1).label('avg_mileage'),
+
+            func.round(func.min(FuelRecord.fuel), 3).label('min_fuel'),
+            func.round(func.max(FuelRecord.fuel), 3).label('max_fuel'),
+            func.round(func.avg(FuelRecord.fuel), 3).label('avg_fuel'),
+
+            func.round(func.min(FuelRecord.cost), 2).label('min_cost'),
+            func.round(func.max(FuelRecord.cost), 2).label('max_cost'),
+            func.round(func.avg(FuelRecord.cost), 2).label('avg_cost'),
+        )
+        .select_from(Vehicle)
+        .join(FuelRecord)
+        .filter(Vehicle.vehicle_id == vid)
+        .order_by(FuelRecord.fill_date.asc())
+        .group_by(func.strftime('%Y', FuelRecord.fill_date))
+    )
+
+    return statement
+
+
+# ---------------------
 # This uses the raw sql and the text() function - it works, but is specific to SQLite
 # def vehicle_report(vid, tail=-1):
 #     """
