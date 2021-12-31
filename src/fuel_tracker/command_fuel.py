@@ -103,6 +103,8 @@ def fuel_add_usage(vid, session):
         console.print(f'[red]{show_command}[/red] [white]{vid}[/white]')
 
     console.print()
+    console.print('use `--help` to see more detailed information.')
+    console.print()
 
 
 @fuel.command("add")

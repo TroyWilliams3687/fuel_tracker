@@ -260,6 +260,7 @@ def export(*args, **kwargs):
     bulk export the specified vehicles by name or id separated by spaces
     on the command line to:
 
+    \b
     - csv
     - excel
     - ods - open office format
@@ -271,7 +272,6 @@ def export(*args, **kwargs):
 
     # Usage
 
-    \b
     $ ft bulk export passat 2
     $ ft bulk export passat interpid --excel=file.xlsx
     $ ft bulk export passat interpid --ods=file.ods
