@@ -9,19 +9,18 @@ to enter fuel expenses based on:
 - Mileage since last fill up
 
 You will be able to register different vehicles in the database and associate
-the expenses with each vehicle. The information will be stored in an SQLite
-database located in `~/.config/bluebill.net/fuel_tracker/data.db`.
+the expenses with each vehicle. The information will be stored in a SQLite
+database (`~/.config/bluebill.net/fuel_tracker/data.db`).
 
 # Installation
 
-You will need an operation version of Python installed and it should be at least
-version 3.9. You'll need to create a virtual environment and install to that.
-Finally, install from Github.
+You will need an operating version of Python installed and it should be at least
+version 3.9. You'll need to create a virtual environment.
 
 ## Linux
 
 If you use Linux, the installation steps are fairly basic. You will need to have
-`Python` correctly installed on your path (>= v3.9):
+`Python` correctly installed and available on your path (>= v3.9):
 
 ```bash
 $ python --version
@@ -74,7 +73,7 @@ $ python -m pip install git+https://github.com/TroyWilliams3687/fuel_tracker.git
 
 ## Windows
 
-You will have to follow the same steps as the Linux installation. 
+You follow, more or less, the same steps as the Linux installation. 
 
 # Usage
 
@@ -95,7 +94,7 @@ Where:
 - `add` - This sub-command tells fuel tracker we want to add a new vehicle to the database.
 
 
-With the bare command (above) you will be prompted for the missing information.
+With the bare command (above) you will be prompted for the missing information:
 
 - name - A name that can be used to identify the vehicle. This can be the model of
  the vehicle or something more memorable or easier to type. It should be
@@ -121,15 +120,10 @@ for the missing information. The switches are as follows:
 $ ft vehicle add --name=passat --make=VW --model=Passat --year=2015 --tank=70 --initial-odo=0
 ```
 
-### Edit
+### Edit and Remove Options
 
 >NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
 
-### Remove
-
->NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
-
-### Show
 
 ## Fuel Record
 
@@ -189,13 +183,9 @@ Switches:
 >NOTE: The date format can be one of the following:
 >
 >  1. `%Y-%m-%d` - year-month-day  2021-08-12
->
 >  2. `%d/%m/%y` - day/month/year  12/08/21
->
 >  3. `%m/%d/%y` - month/day/year  08/12/21
->
 >  4. `%d/%m/%Y` - day/month/year  12/08/2021
->
 >  5. `%m/%d/%Y` - month/day/year  08/12/2021
 >
  >NOTE: The first format to produce a correct date is used. The date is matched
@@ -235,15 +225,7 @@ Add a fuel record to the vehicle (switches):
 $ ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --partial --comment="Some reason"
 ```
 
-### Edit
-
->NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
-
-### Remove
-
->NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
-
-### Show
+### Edit, Remove and Show
 
 >NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
 
@@ -252,12 +234,12 @@ $ ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --pa
 ### Add
 
 You can bulk add new vehicles and fuel records to the database with a carefully
-crafted spreadsheet. Fuel tracker supports both Excel and Open Office formatted
+crafted spreadsheet. Fuel Tracker supports both Excel and Open Office formatted
 spreadsheets (`*.xlsx` and `*.ods`). The spreadsheet will need the following
 columns defined:
 
 - `name` - A name used to identify the vehicle. This name will be used by you
-  when communicating with fuel tracker. Alternatively, you will also be able to
+  when communicating with Fuel Tracker. Alternatively, you will also be able to
   specify a unique number representing the vehicle in the database. 
 
 - `make` - The make of the vehicle (i.e. Ford, Toyota, Volkswagen). 
@@ -308,12 +290,11 @@ You can specify a wild card to include all of the spreadsheets:
 $ ft bulk add ./data/*.ods
 ```
 
-> NOTE: The spreadsheet format matches the format of the [Bulk Export Option]
-  (#export). So you can bulk export all of your records and then import those
+> NOTE: The spreadsheet format matches the format of the [Bulk Export Option](#export). So you can bulk export all of your records and then import those
   directly into a new database. It is a great way to backup your data in a
   format outside the database.
 
-### Remove
+### Delete
 
 You can bulk delete vehicles and all the records associated with them. You
 specify the vehicle by `name` or by database `id`:
@@ -327,9 +308,9 @@ $ ft bulk delete passat 2
 Export the vehicle(s) and its fuel records to various formats. The available
 export formats are:
 
-- `csv` - Export to CSV
-- `excel` - Export to Excel
-- `ods` - Export to Open Office
+- `CSV` - Export to CSV
+- `Excel` - Export to Excel
+- `ODS` - Export to Open Office
 - `stdout` - Export to the terminal
 
 The vehicle and fuel records will be combined into one table and exported to the
