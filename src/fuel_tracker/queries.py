@@ -127,7 +127,7 @@ def vehicle_report(vid, tail=-1):
     return statement
 
 
-def vehicle_report_summary(vid):
+def vehicle_report_summary(vid, include_optional=False):
     """
     """
 
@@ -174,34 +174,41 @@ def vehicle_report_summary(vid):
     # GROUP BY strftime('%Y', f.fill_date)
     # ORDER By f.fill_date DESC
 
+    columns = [
+        func.strftime('%Y', FuelRecord.fill_date).label('year'),
+        func.count(FuelRecord.fill_date).label('fill_ups'),
+
+        func.round(func.sum(FuelRecord.mileage), 1).label('total_mileage'),
+        func.round(func.sum(FuelRecord.fuel), 3).label('total_fuel'),
+        func.round(func.sum(FuelRecord.cost), 2).label('total_cost'),
+
+        func.round(func.sum(FuelRecord.cost)/func.sum(FuelRecord.fuel), 3).label('avg_cost_per_liter'),
+        func.round(100*func.sum(FuelRecord.fuel)/func.sum(FuelRecord.mileage), 3).label('avg_l_per_100km'),
+        func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.264172), 3).label('mpg_us'),
+        func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.219969), 3).label('mpg_imp'),
+    ]
+
+    optional_columns = [
+
+        func.round(func.min(FuelRecord.mileage), 1).label('min_mileage'),
+        func.round(func.max(FuelRecord.mileage), 1).label('max_mileage'),
+        func.round(func.avg(FuelRecord.mileage), 1).label('avg_mileage'),
+
+        func.round(func.min(FuelRecord.fuel), 3).label('min_fuel'),
+        func.round(func.max(FuelRecord.fuel), 3).label('max_fuel'),
+        func.round(func.avg(FuelRecord.fuel), 3).label('avg_fuel'),
+
+        func.round(func.min(FuelRecord.cost), 2).label('min_cost'),
+        func.round(func.max(FuelRecord.cost), 2).label('max_cost'),
+        func.round(func.avg(FuelRecord.cost), 2).label('avg_cost'),
+    ]
+
+
+    if include_optional:
+        columns = columns + optional_columns
+
     statement = (
-        select(
-            # Vehicle.vehicle_id,
-            # Vehicle.name,
-            func.strftime('%Y', FuelRecord.fill_date).label('year'),
-            func.count(FuelRecord.fill_date).label('fill_ups'),
-
-            func.round(func.sum(FuelRecord.mileage), 1).label('total_mileage'),
-            func.round(func.sum(FuelRecord.fuel), 3).label('total_fuel'),
-            func.round(func.sum(FuelRecord.cost), 2).label('total_cost'),
-
-            func.round(func.sum(FuelRecord.cost)/func.sum(FuelRecord.fuel), 3).label('avg_cost_per_liter'),
-            func.round(100*func.sum(FuelRecord.fuel)/func.sum(FuelRecord.mileage), 3).label('avg_l_per_100km'),
-            func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.264172), 3).label('mpg_us'),
-            func.round((func.sum(FuelRecord.mileage)*0.621371)/(func.sum(FuelRecord.fuel)*0.219969), 3).label('mpg_imp'),
-
-            func.round(func.min(FuelRecord.mileage), 1).label('min_mileage'),
-            func.round(func.max(FuelRecord.mileage), 1).label('max_mileage'),
-            func.round(func.avg(FuelRecord.mileage), 1).label('avg_mileage'),
-
-            func.round(func.min(FuelRecord.fuel), 3).label('min_fuel'),
-            func.round(func.max(FuelRecord.fuel), 3).label('max_fuel'),
-            func.round(func.avg(FuelRecord.fuel), 3).label('avg_fuel'),
-
-            func.round(func.min(FuelRecord.cost), 2).label('min_cost'),
-            func.round(func.max(FuelRecord.cost), 2).label('max_cost'),
-            func.round(func.avg(FuelRecord.cost), 2).label('avg_cost'),
-        )
+        select(*columns)
         .select_from(Vehicle)
         .join(FuelRecord)
         .filter(Vehicle.vehicle_id == vid)

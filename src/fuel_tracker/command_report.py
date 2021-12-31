@@ -111,6 +111,11 @@ def report_show_usage(db):
     is_flag=True,
     help="Hide the comments column.",
 )
+@click.option(
+    "--extra-summary",
+    is_flag=True,
+    help="Include extra columns in the summary report",
+)
 def show(*args, **kwargs):
     """
     Display fuel information about the vehicles in a tabular format.
@@ -212,7 +217,7 @@ def show(*args, **kwargs):
 
             # Load the vehicle summary report
 
-            summary_statement = vehicle_report_summary(v.vehicle_id)
+            summary_statement = vehicle_report_summary(v.vehicle_id, include_optional=kwargs['extra_summary'])
             df_totals = pd.read_sql(summary_statement, session.connection())
 
             # ----------------
