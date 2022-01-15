@@ -57,11 +57,3 @@ vulture  # search for deadcode
 
 # twine
 
-# ----------
-# Jupyter Notebooks
-
-# jupyter
-# jupyter_contrib_nbextensions
-# jupyter_nbextensions_configurator
-# jupyterlab
-# ipympl

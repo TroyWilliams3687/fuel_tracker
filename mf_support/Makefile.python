@@ -1,11 +1,11 @@
 # -----------
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2021 Troy Williams
+# Copyright (c) 2022 Troy Williams
 
-# uuid       = 13d94cc2-02b4-11ec-8c3c-c906c7d81bd1
+# uuid       = 68994168-238e-11ec-811e-5d4d4c500ca4
 # author     = Troy Williams
 # email      = troy.williams@bluebill.net
-# date       = 2021-08-21
+# date       = 2021-10-02
 # -----------
 
 # This makefile should be included into the primary makefile when dealing with
@@ -22,7 +22,12 @@
 # - launch a python interactive shell
 # - launch a venv shell
 
-# Simply include this Makefile in another Makefile and add them both to the repository of choice
+# -----------
+# Assumptions
+
+# - Python is properly installed
+# - Virtualenv is properly installed
+
 
 # -----------
 # References
@@ -33,26 +38,6 @@
 # https://github.com/HariSekhon/DevOps-Bash-tools/blob/master/Makefile
 
 # Help file using SED - https://swcarpentry.github.io/make-novice/08-self-doc/index.html
-
-# -----------
-# Default Target
-
-# https://www.gnu.org/software/make/manual/html_node/How-Make-Works.html
-# https://stackoverflow.com/questions/2057689/how-does-make-app-know-default-target-to-build-if-no-target-is-specified
-
-# NOTE: We would have to override the .DEFAULT_GOAL in the main Makefile, after the include
-
-.DEFAULT_GOAL := help
-
-# -----------
-# Assumed Variables
-
-# It is assumed that these variables will be defined in the main Makefile.
-
-# PYPATH?=$(python)
-
-# define the binary to use
-# PY?=$(PYPATH)/python3.9
 
 # -----------
 # Variables
@@ -78,6 +63,10 @@ $(VENV):
 
 	@echo "Upgrading pip, setuptools and wheel..."
 	$(BIN)/python -m pip install --upgrade pip setuptools wheel
+
+	@# NOTE: Running python -m will call the __main__.py module and can do some
+	@# wonderful things
+	@# In addition, it ensures the properly paired binaries are called like pip
 
 	@touch $(VENV)
 
@@ -109,7 +98,7 @@ endif
 $(VENV)/$(MARKER): $(VENV_DEP) | $(VENV)
 ifneq ($(strip $(REQUIREMENTS_TXT)),)
 	@echo "Installing Requirements..."
-	$(BIN)/pip install $(foreach path,$(REQUIREMENTS_TXT),-r $(path))
+	$(BIN)/python -m pip install $(foreach path,$(REQUIREMENTS_TXT),-r $(path))
 endif
 
 # The project does require a stub `setup.py` file that calls setuptools.setup
@@ -163,6 +152,10 @@ python: venv
 .PHONY: shell
 shell: venv
 	@echo "Activating $(VENV)..."
+	@echo ""
+# 	RED='\033[0;31m' # Red
+# 	NC='\033[0m' # No Color
+	@echo -e "Set an alias in .bashrc -> \033[0;31malias activate=\"source .venv/bin/activate\"\033[0m"
 	@bash --rcfile $(BIN)/activate -i
 
 # -----------
@@ -189,22 +182,4 @@ remove-venv: clean-venv
 	@find . -type d -name .pytest_cache -exec rm -r {} +
 	@find . -type d -name .ipynb_checkpoints -exec rm -r {} +
 
-# -----------
-# make help
 
-# - https://swcarpentry.github.io/make-novice/08-self-doc/index.html use sed to
-#   look for double # pattern and use that as the documentation string to print
-#   out.
-
-# NOTE: This version uses find to find all makefiles and then feeds them to SED
-# to extract the information.
-
-## make help - List the available command descriptions for the Makefile.
-.PHONY : help
-help : $(wildcard Makefile)
-	@echo ""
-	@echo "Available Commands:"
-	@echo ""
-	@find . -name "Makefile*" -exec sed -n 's/^##//p' {} \;
-	@echo ""
-	@echo "To get started, use '$ make venv'"
