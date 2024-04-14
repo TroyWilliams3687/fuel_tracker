@@ -1,7 +1,7 @@
 
-The MIT License (MIT)
+The MIT License ([MIT](https://choosealicense.com/licenses/mit/))
 
-Copyright (c) 2021 Troy Williams
+Copyright (c) 2024 Troy Williams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

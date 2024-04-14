@@ -12,70 +12,98 @@ You will be able to register different vehicles in the database and associate
 the expenses with each vehicle. The information will be stored in a SQLite
 database (`~/.config/bluebill.net/fuel_tracker/data.db`).
 
-# Installation
+## Introduction
 
-You will need an operating version of Python installed and it should be at least
-version 3.9. You'll need to create a virtual environment.
+## QuickStart
 
-## Linux
+1. [Install Rye](#installation-and-configuration)
+2. [Installation and Configuration](#rye-sync)
+3. [Activate](#activate-virtual-environment---traditional-approach)
+4. [expgen](#experiment-generator-usage)
+    - [expgen config](#config)
+    - [expgen create](#create)
+    - [expgen predict](#predict)
+5. [Build Docs](#build-docs)
+6. [Build Installer](#build-installer)
 
-If you use Linux, the installation steps are fairly basic. You will need to have
-`Python` correctly installed and available on your path (>= v3.9):
 
-```bash
-$ python --version
+## Installation and Configuration
 
-Python 3.9.5
-````
+To get this project up and running from the repository, it uses [Rye](https://rye-up.com) as the build/dependency manager. There are [instructions](https://rye-up.com/guide/installation/) for installing Rye on many different systems. This set of instructions are for Linux and windows. See the installation guide for other operating systems.
 
-Upgrade `pip`:
+You have to download Rye to your system. Follow the [installation guide](https://rye-up.com/guide/installation/) for your operating system.
 
-```bash
-$ python -m pip install --upgrade pip
-````
+Why Rye? That is a good question. Python is a great language but it is tough to create a reproducible environment. You have to have the correct version of Python installed or available. You have to have the correct tools configured. If you are on Linux/BSD you have to make sure that your work doesn't mess up your system Python installation. It is fairly trivial if you are experienced, but annoying enough to have to do it over-and-over again. If you are new, it can be extremely difficult.
 
-Install the `virtualenv`:
+Rye takes care of handling the different versions of Python and managing the tools you need for a reproducible environment, particularly if you are doing cross-platform work.
 
-```bash
-$ python -m pip install virtualenv
-````
+### Linux
 
-Create the installation folder, for example, `~/opt/ft`:
-
-```bash
-$ cd ~
-
-$ mkdir ft
-
-$ cd ft
-````
-
-Create the virtual environment:
+For Linux, you can use the following:
 
 ```bash
-$ python -m venv .venv
+curl -sSf https://rye-up.com/get | bash
 ```
 
-Activate the virtual environment:
+There are also good guides to configuring Rye for your shell. Here is what I had to do to get it working in ZSH on my system.
+
+Edit **.zshrc**:
 
 ```bash
-
-$ source .venv/bin/activate
+vi ~/.zshrc
 ```
 
-Install Fuel Tracker:
+Add the following:
 
 ```bash
+source "$HOME/.rye/env"
+```
 
-$ python -m pip install git+https://github.com/TroyWilliams3687/fuel_tracker.git
+Restart the terminal and type **rye**. To add [shell completion](https://rye-up.com/guide/installation/#shell-completion), you can:
 
-````
+```bash
+mkdir $ZSH_CUSTOM/plugins/rye
+rye self completion -s zsh > $ZSH_CUSTOM/plugins/rye/_rye
+```
 
-## Windows
+### Windows
 
-You follow, more or less, the same steps as the Linux installation. 
+For windows, download the [installer](https://github.com/mitsuhiko/rye/releases/latest/download/rye-x86_64-windows.exe) listed in the installation guide link.
 
-# Usage
+## Basic Rye Usage
+
+### Rye Update
+
+[Update rye](https://rye-up.com/guide/installation/#updating-rye):
+
+```bash
+rye self update
+```
+
+### Rye Sync
+
+Once you have rye properly installed, you can run [**rye sync**](https://rye-up.com/guide/commands/sync/), to build (or update) the virtual environment.
+
+Create/Update Virtual Environment
+
+```bash
+rye sync
+```
+
+> NOTE: This needs to be run from within the repository. If you add new dependencies or modify the **pyproject.toml** you should run **rye sync**.
+
+### Activate Virtual Environment - Traditional Approach
+
+You can add the following alias to your **.zshrc** or **.bashrc**, or you can run the activate script directly:
+
+```bash
+# Python Virtual Environment Alias
+alias activate="source .venv/bin/activate"
+```
+
+>NOTE: On Windows, there is an **activate.ps1**, a PowerShell script that you can execute.
+
+## Usage
 
 ## Vehicle
 
@@ -122,7 +150,7 @@ $ ft vehicle add --name=passat --make=VW --model=Passat --year=2015 --tank=70 --
 
 ### Edit and Remove Options
 
->NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
+>NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).
 
 
 ## Fuel Record
@@ -197,7 +225,7 @@ Switches:
    to escape them on the CLI using quotation marks.
 
 
-Example of prompts: 
+Example of prompts:
 
 ```bash
 $ ft fuel add passat
@@ -213,7 +241,7 @@ Mileage = 645.8
 Cost    = 54.35
 Partial = None
 Comment = None
-Is the Fuel Record Correct? [Y/n]: 
+Is the Fuel Record Correct? [Y/n]:
 ```
 
 >NOTE: It will not prompt for `partial` or `comment`. These switches must be
@@ -227,7 +255,7 @@ $ ft fuel add passat --date=2021-01-01 --fuel=48 --mileage=750 --cost=56.65 --pa
 
 ### Edit, Remove and Show
 
->NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).  
+>NOTE: Currently not implemented. On Linux and Windows you can use [DB Browser for SQLite](https://sqlitebrowser.org/).
 
 ## Bulk Operations
 
@@ -240,9 +268,9 @@ columns defined:
 
 - `name` - A name used to identify the vehicle. This name will be used by you
   when communicating with Fuel Tracker. Alternatively, you will also be able to
-  specify a unique number representing the vehicle in the database. 
+  specify a unique number representing the vehicle in the database.
 
-- `make` - The make of the vehicle (i.e. Ford, Toyota, Volkswagen). 
+- `make` - The make of the vehicle (i.e. Ford, Toyota, Volkswagen).
 
 - `model` - The model of the vehicle (F-150, Passat, Camry).
 
@@ -427,7 +455,8 @@ Summary by Year:
 
 ```
 
-# License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+## License
+
+Please refer to [LICENSE.md](LICENSE.md).
 

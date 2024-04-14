@@ -1,8 +1,44 @@
+[project]
+name = "fuel_tracker"
+version = "0.0.1"
+license = "MIT"
+description = "{cookiecutter.description}}"
+authors = [
+    { name = "Troy Williams", email = "troy.williams@bluebill.net" }
+]
+readme = "README.md"
 
-# https://setuptools.readthedocs.io/en/latest/userguide/quickstart.html
+# requires-python = ">= 3.12"
+dependencies = [
+    "appdirs",
+    "click",
+    "odfpy",
+    "openpyxl",
+    "pandas",
+    "rich",
+    "sqlalchemy",
+    "tabulate", # Dataframe.to_markdown
+    "toml",
+    "tzdata",  # For Timezones on Windows. On linux, it will use the system binaries first
+]
+
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-# To Build, use https://pypa-build.readthedocs.io/en/latest/index.html
-# $ python -m build
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest",
+    "black",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fuel_tracker"]
+
+[project.scripts]
+ft="fuel_tracker.fueltracker:main"
